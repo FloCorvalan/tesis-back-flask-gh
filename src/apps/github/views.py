@@ -4,6 +4,7 @@ from traceback import print_tb
 from flask import Blueprint, Response
 from .methods import *
 import json
+from bson import json_util
 
 github = Blueprint('github', __name__)
 
@@ -91,8 +92,9 @@ def get_github_participation():
 
     # Se obtiene la participacion de los desarrolladores
     participation = get_participation(team_id, source_id)
-
-    return participation
+    
+    response = json_util.dumps(participation)
+    return Response(response, mimetype='application/json')
 
 ###################################################################
 ###################################################################

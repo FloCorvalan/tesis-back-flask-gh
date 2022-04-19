@@ -66,7 +66,7 @@ def get_participation(team_id, source_id):
 
 def update_github_participation(team_id, source_id, developer, new_additions, new_deletions, new_commits):
     mongo.db.get_collection('github_participation').update_one({'team_id': team_id, 'source_id': source_id, 'name': developer}, {'$set': {
-                'addtions': new_additions,
+                'additions': new_additions,
                 'deletions': new_deletions,
                 'commits': new_commits
             }})

@@ -7,7 +7,7 @@ EXPRESSIONS = ['code', 'test']
 import json
 from github import Github
 from bson.objectid import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 import github
@@ -116,7 +116,7 @@ def get_registers(team_id, source_id):
 
 
 #################################################
-############# PARTICIPACION #####################
+############# PARTICIPATION #####################
 #################################################
 def get_repo_info(team_id, source_id):
     repo_name = get_repo_name(source_id)
@@ -134,8 +134,10 @@ def get_repo_info(team_id, source_id):
     commits_sha = []
     for branch in branches:
         if github_info == None or last_date_exists == None:
+            #print('entre al IF')
             commits = repo.get_commits(branch.name)
         else:
+            #print('entre al ELSE')
             last_date = get_github_info_last_date(team_id, source_id, 'last_date_info')
             commits = repo.get_commits(branch.name, since=last_date)
             github_part = get_participation(team_id, source_id)
@@ -146,6 +148,7 @@ def get_repo_info(team_id, source_id):
                     'commits': developer['commits']
                 }
         #print("RAMA " + branch.name)
+        #cont = 0
         for commit in commits:
             print(commit.commit.author.date)
             if commit.sha not in commits_sha:
@@ -161,11 +164,22 @@ def get_repo_info(team_id, source_id):
                     developers[author]['commits'] += 1
                 additions = 0
                 deletions = 0
+                #print('Contador = ' + str(cont))
                 for file in commit.files:
                     additions += file.additions
                     deletions += file.deletions
+                    #print(file.additions)
+                    #print(file.deletions)
                 developers[author]['additions'] += additions
                 developers[author]['deletions'] += deletions
+                
+                #cont += 1
+        '''print('ADDITIONS DEVELOPER TOTAL')
+        print(developers[author]['additions'])
+        print('DELETIONS DEVELOPER TOTAL')
+        print(developers[author]['deletions'])
+        print('COMMITS DEVELOPER TOTAL')
+        print(developers[author]['commits'])'''
 
     # Se calculan los totales (additions, deletions, commits) en el repositorio
     # primero se revisa si existe la instancia de github info y los atributos necesarios
@@ -191,14 +205,16 @@ def get_repo_info(team_id, source_id):
         developer_db = find_developer(team_id, source_id, developer)
         if developer_db != None:
             # Si existe, se actualizan sus datos
-            new_additions = developer_db['additions'] + developers[developer]['additions']
-            new_deletions = developer_db['deletions'] + developers[developer]['deletions']
-            new_commits = developer_db['commits'] + developers[developer]['commits']
+            new_additions = developer_db['additions']
+            new_deletions = developer_db['deletions']
+            new_commits = developer_db['commits']
             update_github_participation(team_id, source_id, developer, new_additions, new_deletions, new_commits)
         else:
             # Si no existe, se inserta
+            #print("se inserta developer en participacion")
             insert_github_participation(team_id, source_id, developer, developers)
     # Se almacenan los totales en github_info
+    #print("se actualiza la informacion")
     update_info(github_info, team_id, source_id, repo_name, total_additions, total_deletions, total_commits)
 
     return developers
