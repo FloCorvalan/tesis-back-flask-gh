@@ -4,25 +4,18 @@ EXPRESSIONS = ['code', 'test']
 
 #####################################################################
 
-
-if __package__ is None or __package__ == '':
-    # uses current directory visibility
-    from ...database.database import mongo
-else:
-    # uses current package visibility
-    from database.database import mongo
-
 import json
 from github import Github
 from bson.objectid import ObjectId
 from datetime import datetime
 import re
 
+import github
+from .db_methods import *
+
 
 def get_authenticated_user(source_id):
-    source = mongo.db.get_collection('source').find_one({'_id': ObjectId(source_id)})
-    token = source['token']
-    user = source['user']
+    token, user = get_authentication_info(source_id)
     g = Github(token)
     return g.get_user(user)
 
@@ -56,18 +49,15 @@ def get_registers(team_id, source_id):
 
     dic = extract_reg_expressions()
 
-    source = mongo.db.get_collection('source').find_one({'_id': ObjectId(source_id)})
-    team = mongo.db.get_collection('team').find_one({'_id': ObjectId(team_id)})
-    repo_name = source['name']
-    case_id = team['actual_case_id']
+    repo_name, case_id = get_source_info(team_id, source_id)
+
     user = get_authenticated_user(source_id)
 
     repo = user.get_repo(repo_name)
     branches = repo.get_branches()
 
-    github_info = mongo.db.get_collection('github_info').find_one({'team_id': team_id, 'source_id': source_id})
-    last_date_exists = mongo.db.get_collection('github_info').find_one({'team_id': team_id, 'source_id': source_id, 'last_date': {'$exists': True}})
-        
+    github_info, last_date_exists = get_github_info(team_id, source_id, 'last_date')
+   
     commits_sha = []
     for branch in branches:
         if github_info == None or last_date_exists == None:
@@ -77,7 +67,7 @@ def get_registers(team_id, source_id):
             # Si se han analizado datos ya
             # Se analizan los datos posteriores a la ultima
             #fecha de revision
-            last_date = github_info['last_date']
+            last_date = get_github_info_last_date(team_id, source_id, 'last_date')
             commits = repo.get_commits(branch.name, since=last_date)
         print("RAMA " + branch.name)
         for commit in commits:
@@ -117,32 +107,11 @@ def get_registers(team_id, source_id):
                             'tool': 'github',
                             'userName': author
                             })
-                    '''
-                    mongo.db.get_collection('registers').insert_one({
-                            'team_id': team_id,
-                            'case_id': case_id,
-                            'activity': activity, 
-                            'timestamp': time,
-                            'resource': author,
-                            'tool': 'github',
-                            'userName': author
-                            })
+                    time = datetime.strptime(str(time).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp()
+                    save_register(team_id, case_id, activity, time, author)
+    print(github_info)
+    update_last_date(github_info, team_id, source_id, repo_name) # Si no existe, la crea
 
-                    ''' 
-    '''
-    if github_info == None:
-        mongo.db.get_collection('github_info').insert_one({
-            'team_id': team_id,
-            'source_id': source_id,
-            'repo': repo_name, 
-            'last_date': datetime.now()
-        })
-    # Se actualiza el last_date (ultima fecha de revision)
-    else:
-        mongo.db.get_collection('github_info').update_one({'team_id': team_id, 'source_id': source_id}, {'$set': {
-            'last_date': datetime.now()
-        }})
-    '''
     return {'message': 'Successfully extracted data'}
 
 
@@ -150,16 +119,14 @@ def get_registers(team_id, source_id):
 ############# PARTICIPACION #####################
 #################################################
 def get_repo_info(team_id, source_id):
-    source = mongo.db.get_collection('source').find_one({'_id': ObjectId(source_id)})
-    team = mongo.db.get_collection('team').find_one({'_id': ObjectId(team_id)})
-    repo_name = source['name']
+    repo_name = get_repo_name(source_id)
+
     user = get_authenticated_user(source_id)
 
     repo = user.get_repo(repo_name)
     branches = repo.get_branches()
 
-    github_info = mongo.db.get_collection('github_info').find_one({'team_id': team_id, 'source_id': source_id})
-    last_date_exists = mongo.db.get_collection('github_info').find_one({'team_id': team_id, 'source_id': source_id, 'last_date_info': {'$exists': True}})
+    github_info, last_date_exists = get_github_info(team_id, source_id, 'last_date_info')
 
     developers = {}
 
@@ -169,9 +136,9 @@ def get_repo_info(team_id, source_id):
         if github_info == None or last_date_exists == None:
             commits = repo.get_commits(branch.name)
         else:
-            last_date = github_info['last_date_info']
+            last_date = get_github_info_last_date(team_id, source_id, 'last_date_info')
             commits = repo.get_commits(branch.name, since=last_date)
-            github_part = mongo.db.get_collection('github_participation').find({'team_id': team_id, 'source_id': source_id})
+            github_part = get_participation(team_id, source_id)
             for developer in github_part:
                 developers[developer['name']] = {
                     'additions': developer['additions'],
@@ -180,6 +147,7 @@ def get_repo_info(team_id, source_id):
                 }
         #print("RAMA " + branch.name)
         for commit in commits:
+            print(commit.commit.author.date)
             if commit.sha not in commits_sha:
                 commits_sha.append(commit.sha)
                 author = commit.commit.author.name
@@ -200,7 +168,10 @@ def get_repo_info(team_id, source_id):
                 developers[author]['deletions'] += deletions
 
     # Se calculan los totales (additions, deletions, commits) en el repositorio
-    if github_info == None:
+    # primero se revisa si existe la instancia de github info y los atributos necesarios
+    # (se asume que si existe uno de los totales es porque ya paso por eso al menos una vez)
+    github_additions_exists = get_info_additions_exists(team_id, source_id)
+    if github_info == None or github_additions_exists == None:
         # No hay registro previo => los totales actuales son 0
         total_additions = 0
         total_deletions = 0
@@ -211,53 +182,43 @@ def get_repo_info(team_id, source_id):
         total_deletions = github_info['total_deletions']
         total_commits = github_info['total_commits']
 
-    '''new_total_additions = 0
-    new_total_deletions = 0
-    new_total_commits = 0'''
     for developer in developers.keys():
         # Se acumulan los nuevos resultados (de lo que se obtuvo revisando la actividad de los developers)
         total_additions += developers[developer]['additions']
         total_deletions += developers[developer]['deletions']
         total_commits += developers[developer]['commits']
         # Se actualiza la informacion de los developers en github_participation
-        developer_db = mongo.db.get_collection('github_participation').find_one({'team_id': team_id, 'source_id': source_id, 'name': developer})
+        developer_db = find_developer(team_id, source_id, developer)
         if developer_db != None:
             # Si existe, se actualizan sus datos
             new_additions = developer_db['additions'] + developers[developer]['additions']
             new_deletions = developer_db['deletions'] + developers[developer]['deletions']
             new_commits = developer_db['commits'] + developers[developer]['commits']
-            mongo.db.get_collection('github_participation').update_one({'team_id': team_id, 'source_id': source_id, 'name': developer}, {'$set': {
-                'addtions': new_additions,
-                'deletions': new_deletions,
-                'commits': new_commits
-            }})
+            update_github_participation(team_id, source_id, developer, new_additions, new_deletions, new_commits)
         else:
             # Si no existe, se inserta
-            mongo.db.get_collection('github_participation').insert_one({
-                'team_id': team_id, 
-                'source_id': source_id,
-                'name': developer,
-                'additions': developers[developer]['additions'],
-                'deletions': developers[developer]['deletions'],
-                'commits': developers[developer]['commits']
-            })
+            insert_github_participation(team_id, source_id, developer, developers)
     # Se almacenan los totales en github_info
-    if github_info == None:
-        mongo.db.get_collection('github_info').insert_one({
-                'team_id': team_id,
-                'source_id': source_id,
-                'repo': repo_name,
-                'total_additions': total_additions, 
-                'total_deletions': total_deletions,
-                'total_commits': total_commits, 
-                'last_date_info': datetime.now()
-            })
-    else:
-        mongo.db.get_collection('github_info').update_one({'team_id': team_id, 'source_id': source_id}, {'$set': {
-                'total_additions': total_additions, 
-                'total_deletions': total_deletions,
-                'total_commits': total_commits, 
-                'last_date_info': datetime.now()
-            }})
+    update_info(github_info, team_id, source_id, repo_name, total_additions, total_deletions, total_commits)
 
     return developers
+
+def calculate_percentages(team_id, source_id):
+    print("entre a calculate_percentages")
+    developers = find_developers(team_id, source_id)
+    github_info = get_only_github_info(team_id, source_id)
+    
+    total_additions = github_info['total_additions']
+    total_deletions = github_info['total_deletions']
+    total_commits = github_info['total_commits']
+    for developer in developers:
+        additions_per = int(developer['additions']/total_additions * 100)
+        deletions_per = int(developer['deletions']/total_deletions * 100)
+        commits_per = int(developer['commits']/total_commits * 100)
+
+        update_developer_github_participation(team_id, source_id, developer['name'], additions_per, deletions_per, commits_per)
+    return 
+
+def get_participation(team_id, source_id):
+    participation = get_participation_db(team_id, source_id)
+    return participation

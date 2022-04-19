@@ -46,12 +46,55 @@ def test3():
             print(week.c)
     #return Response(response, 'application/json')
 
-@github.route('/github/get-registers', methods=['GET'])
-def get_github_registers():
-    response = get_registers('6241fad36d714f635bafbc9f', '6255d136c04ac27bbad0276d')
+###################################################################
+########################## REGISTERS ##############################
+###################################################################
+
+@github.route('/github', methods=['GET'])
+def get_registers_service():
+    #team_id = request.json['team_id']
+    #source_id = request.json['source_id']
+    team_id = '6241fad36d714f635bafbc9f'
+    source_id = '6255d136c04ac27bbad0276d'
+    response = get_registers(team_id, source_id)
     return response
+
+###################################################################
+###################################################################
+###################################################################
+#------------------------------------------------------------------
 
 @github.route('/github/get-repo-info', methods=['GET'])
 def get_github_repo_info():
-    response = get_repo_info('6241fad36d714f635bafbc9f', '6255d136c04ac27bbad0276d')
+    #team_id = request.json['team_id']
+    #source_id = request.json['source_id']
+    team_id = '6241fad36d714f635bafbc9f'
+    source_id = '6255d136c04ac27bbad0276d'
+    response = get_repo_info(team_id, source_id)
     return response
+
+###################################################################
+################### ALL PARTICIPATION PROCESS #####################
+###################################################################
+
+@github.route('/github/participation', methods=['GET'])
+def get_github_participation():
+    #team_id = request.json['team_id']
+    #source_id = request.json['source_id']
+    team_id = '6241fad36d714f635bafbc9f'
+    source_id = '6255d136c04ac27bbad0276d'
+    # Se obtiene la informacion general del repositorio (totales) y de los desarrolladores
+    get_repo_info(team_id, source_id)
+
+    # Se calculan los porcentajes de participacion de los desarrolladores
+    calculate_percentages(team_id, source_id)
+
+    # Se obtiene la participacion de los desarrolladores
+    participation = get_participation(team_id, source_id)
+
+    return participation
+
+###################################################################
+###################################################################
+###################################################################
+#------------------------------------------------------------------
