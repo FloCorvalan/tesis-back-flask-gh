@@ -126,31 +126,45 @@ def get_repo_info(team_id, source_id):
     repo = user.get_repo(repo_name)
     branches = repo.get_branches()
 
-    github_info, last_date_exists = get_github_info(team_id, source_id, 'last_date_info')
+    github_info, last_date_exists = get_github_info(team_id, source_id, 'last_date_commit')
 
     developers = {}
 
+    total_additions = 0
+    total_deletions = 0
+    total_commits = 0
+
     # Se obtiene en numero total de commits
     commits_sha = []
+    last_date = None
+    another_branch = 0 # indica si se esta pasando por otra rama para no reiniciar los contadores de developers con lo de la bd
     for branch in branches:
         if github_info == None or last_date_exists == None:
             #print('entre al IF')
             commits = repo.get_commits(branch.name)
+            # Si es None, no se ha pasado por otra rama
+            if last_date == None:
+                last_date = commits[0].commit.author.date
+            # Si no es None, se comprueba que la primera fecha de la siguiente rama
+            # sea mayor que la ultima almacenada para guardarla
+            elif last_date < commits[0].commit.author.date:
+                last_date = commits[0].commit.author.date
         else:
-            #print('entre al ELSE')
-            last_date = get_github_info_last_date(team_id, source_id, 'last_date_info')
-            commits = repo.get_commits(branch.name, since=last_date)
+            print('entre al ELSE')
+            last_date = get_github_info_last_date(team_id, source_id, 'last_date_commit')
+            commits = repo.get_commits(branch.name, since=last_date + timedelta(seconds=1))
             github_part = get_participation(team_id, source_id)
-            for developer in github_part:
-                developers[developer['name']] = {
-                    'additions': developer['additions'],
-                    'deletions': developer['deletions'],
-                    'commits': developer['commits']
-                }
+            if another_branch == 0:
+                for developer in github_part:
+                    developers[developer['name']] = {
+                        'additions': developer['additions'],
+                        'deletions': developer['deletions'],
+                        'commits': developer['commits']
+                    }
         #print("RAMA " + branch.name)
         #cont = 0
         for commit in commits:
-            print(commit.commit.author.date)
+            #print(commit.commit.author.date)
             if commit.sha not in commits_sha:
                 commits_sha.append(commit.sha)
                 author = commit.commit.author.name
@@ -161,19 +175,34 @@ def get_repo_info(team_id, source_id):
                         'commits': 1
                     }
                 else:
+                    print('entre al else de los commits')
                     developers[author]['commits'] += 1
+                    # Si hay al menos un commit, se debe mantener la cuenta
+                    another_branch = 1
+                    print(developers[author]['commits'])
+                # Se suma uno al total de commits nuevos
+                total_commits += 1
                 additions = 0
                 deletions = 0
                 #print('Contador = ' + str(cont))
                 for file in commit.files:
                     additions += file.additions
                     deletions += file.deletions
-                    #print(file.additions)
-                    #print(file.deletions)
+                    
+                    # Se suman las additions y deletions totales de los nuevos commits
+                    total_additions += file.additions
+                    total_deletions += file.deletions
+
                 developers[author]['additions'] += additions
                 developers[author]['deletions'] += deletions
+                print('sume additions y deletions')
+                print(developers[author]['additions'])
+                print(developers[author]['deletions'])
                 
-                #cont += 1
+                # Se actualiza la fecha con la del commit analizado
+                # para finalmente obtener la mayor fecha
+                if last_date < commit.commit.author.date:
+                    last_date = commit.commit.author.date
         '''print('ADDITIONS DEVELOPER TOTAL')
         print(developers[author]['additions'])
         print('DELETIONS DEVELOPER TOTAL')
@@ -184,30 +213,34 @@ def get_repo_info(team_id, source_id):
     # Se calculan los totales (additions, deletions, commits) en el repositorio
     # primero se revisa si existe la instancia de github info y los atributos necesarios
     # (se asume que si existe uno de los totales es porque ya paso por eso al menos una vez)
-    github_additions_exists = get_info_additions_exists(team_id, source_id)
+    github_additions_exists = get_info_total_additions_exists(team_id, source_id)
     if github_info == None or github_additions_exists == None:
         # No hay registro previo => los totales actuales son 0
-        total_additions = 0
-        total_deletions = 0
-        total_commits = 0
+        new_total_additions = 0
+        new_total_deletions = 0
+        new_total_commits = 0
     else:
         # Si hay registro previo => se obtienen los totales previamente registrados
-        total_additions = github_info['total_additions']
-        total_deletions = github_info['total_deletions']
-        total_commits = github_info['total_commits']
+        new_total_additions = github_info['total_additions']
+        new_total_deletions = github_info['total_deletions']
+        new_total_commits = github_info['total_commits']
+    # Se acumulan los nuevos resultados (de lo que se obtuvo revisando la actividad de los developers)
+    new_total_additions += total_additions
+    new_total_deletions += total_deletions
+    new_total_commits += total_commits
 
+    #print(new_total_additions)
+    #print(new_total_deletions)
+    #print(new_total_commits)
+    #print(developers)
     for developer in developers.keys():
-        # Se acumulan los nuevos resultados (de lo que se obtuvo revisando la actividad de los developers)
-        total_additions += developers[developer]['additions']
-        total_deletions += developers[developer]['deletions']
-        total_commits += developers[developer]['commits']
         # Se actualiza la informacion de los developers en github_participation
         developer_db = find_developer(team_id, source_id, developer)
         if developer_db != None:
             # Si existe, se actualizan sus datos
-            new_additions = developer_db['additions']
-            new_deletions = developer_db['deletions']
-            new_commits = developer_db['commits']
+            new_additions = developers[developer]['additions']
+            new_deletions = developers[developer]['deletions']
+            new_commits = developers[developer]['commits']
             update_github_participation(team_id, source_id, developer, new_additions, new_deletions, new_commits)
         else:
             # Si no existe, se inserta
@@ -215,7 +248,7 @@ def get_repo_info(team_id, source_id):
             insert_github_participation(team_id, source_id, developer, developers)
     # Se almacenan los totales en github_info
     #print("se actualiza la informacion")
-    update_info(github_info, team_id, source_id, repo_name, total_additions, total_deletions, total_commits)
+    update_info(github_info, team_id, source_id, repo_name, new_total_additions, new_total_deletions, new_total_commits, last_date)
 
     return developers
 
@@ -228,9 +261,18 @@ def calculate_percentages(team_id, source_id):
     total_deletions = github_info['total_deletions']
     total_commits = github_info['total_commits']
     for developer in developers:
-        additions_per = int(developer['additions']/total_additions * 100)
-        deletions_per = int(developer['deletions']/total_deletions * 100)
-        commits_per = int(developer['commits']/total_commits * 100)
+        if total_additions == 0:
+            additions_per = 0
+        else:
+            additions_per = int(developer['additions']/total_additions * 100)
+        if total_deletions == 0:
+            deletions_per = 0
+        else:
+            deletions_per = int(developer['deletions']/total_deletions * 100)
+        if total_commits == 0:
+            commits_per = 0
+        else:
+            commits_per = int(developer['commits']/total_commits * 100)
 
         update_developer_github_participation(team_id, source_id, developer['name'], additions_per, deletions_per, commits_per)
     return 

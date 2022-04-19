@@ -81,7 +81,7 @@ def insert_github_participation(team_id, source_id, developer, developers):
                 'commits': developers[developer]['commits']
             })
 
-def update_info(github_info, team_id, source_id, repo_name, total_additions, total_deletions, total_commits):
+def update_info(github_info, team_id, source_id, repo_name, total_additions, total_deletions, total_commits, last_date_commit):
     if github_info == None:
         mongo.db.get_collection('github_info').insert_one({
                 'team_id': team_id,
@@ -90,14 +90,16 @@ def update_info(github_info, team_id, source_id, repo_name, total_additions, tot
                 'total_additions': total_additions, 
                 'total_deletions': total_deletions,
                 'total_commits': total_commits, 
-                'last_date_info': datetime.now()
+                'last_date_info': datetime.now(),
+                'last_date_commit': last_date_commit
             })
     else:
         mongo.db.get_collection('github_info').update_one({'team_id': team_id, 'source_id': source_id}, {'$set': {
                 'total_additions': total_additions, 
                 'total_deletions': total_deletions,
                 'total_commits': total_commits, 
-                'last_date_info': datetime.now()
+                'last_date_info': datetime.now(),
+                'last_date_commit': last_date_commit
             }})
 
 def update_developer_github_participation(team_id, source_id, developer, additions_per, deletions_per, commits_per):
@@ -123,6 +125,6 @@ def get_participation_db(team_id, source_id):
     participation = mongo.db.get_collection('github_participation').find({'team_id': team_id, 'source_id': source_id})
     return participation
 
-def get_info_additions_exists(team_id, source_id):
-    info_additions_exists = mongo.db.get_collection('github_info').find_one({'team_id': team_id, 'source_id': source_id, 'additions': {'$exists': True}})
+def get_info_total_additions_exists(team_id, source_id):
+    info_additions_exists = mongo.db.get_collection('github_info').find_one({'team_id': team_id, 'source_id': source_id, 'total_additions': {'$exists': True}})
     return info_additions_exists
