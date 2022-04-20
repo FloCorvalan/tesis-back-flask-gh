@@ -45,18 +45,18 @@ def extract_reg_expressions():
     #print(expressions)
     return expressions
 
-def get_registers(team_id, source_id):
+def get_registers(team_project_id, source_id):
 
     dic = extract_reg_expressions()
 
-    repo_name, case_id = get_source_info(team_id, source_id)
+    repo_name, case_id = get_source_info(team_project_id, source_id)
 
     user = get_authenticated_user(source_id)
 
     repo = user.get_repo(repo_name)
     branches = repo.get_branches()
 
-    github_info, last_date_exists = get_github_info(team_id, source_id, 'last_date')
+    github_info, last_date_exists = get_github_info(team_project_id, source_id, 'last_date')
    
     commits_sha = []
     for branch in branches:
@@ -67,9 +67,9 @@ def get_registers(team_id, source_id):
             # Si se han analizado datos ya
             # Se analizan los datos posteriores a la ultima
             #fecha de revision
-            last_date = get_github_info_last_date(team_id, source_id, 'last_date')
+            last_date = get_github_info_last_date(team_project_id, source_id, 'last_date')
             commits = repo.get_commits(branch.name, since=last_date)
-        print("RAMA " + branch.name)
+        #print("RAMA " + branch.name)
         for commit in commits:
             if commit.sha not in commits_sha:
                 commits_sha.append(commit.sha)
@@ -97,20 +97,20 @@ def get_registers(team_id, source_id):
                         max_changes = number_changes[ex]
                 #print(max_changes)
                 if activity != '':
-                    print('REGISTER')
-                    print({
-                            'team_id': team_id,
-                            'case_id': case_id,
-                            'activity': activity, 
-                            'timestamp': time,
-                            'resource': author,
-                            'tool': 'github',
-                            'userName': author
-                            })
+                    #print('REGISTER')
+                    #print({
+                    #        'team_project_id': team_project_id,
+                    #        'case_id': case_id,
+                    #        'activity': activity, 
+                    #        'timestamp': time,
+                    #        'resource': author,
+                    #        'tool': 'github',
+                    #        'userName': author
+                    #        })
                     time = datetime.strptime(str(time).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp()
-                    save_register(team_id, case_id, activity, time, author)
-    print(github_info)
-    update_last_date(github_info, team_id, source_id, repo_name) # Si no existe, la crea
+                    save_register(team_project_id, case_id, activity, time, author)
+    #print(github_info)
+    update_last_date(github_info, team_project_id, source_id, repo_name) # Si no existe, la crea
 
     return {'message': 'Successfully extracted data'}
 
@@ -118,7 +118,7 @@ def get_registers(team_id, source_id):
 #################################################
 ############# PARTICIPATION #####################
 #################################################
-def get_repo_info(team_id, source_id):
+def get_repo_info(team_project_id, source_id):
     repo_name = get_repo_name(source_id)
 
     user = get_authenticated_user(source_id)
@@ -126,7 +126,7 @@ def get_repo_info(team_id, source_id):
     repo = user.get_repo(repo_name)
     branches = repo.get_branches()
 
-    github_info, last_date_exists = get_github_info(team_id, source_id, 'last_date_commit')
+    github_info, last_date_exists = get_github_info(team_project_id, source_id, 'last_date_commit')
 
     developers = {}
 
@@ -150,10 +150,10 @@ def get_repo_info(team_id, source_id):
             elif last_date < commits[0].commit.author.date:
                 last_date = commits[0].commit.author.date
         else:
-            print('entre al ELSE')
-            last_date = get_github_info_last_date(team_id, source_id, 'last_date_commit')
+            #print('entre al ELSE')
+            last_date = get_github_info_last_date(team_project_id, source_id, 'last_date_commit')
             commits = repo.get_commits(branch.name, since=last_date + timedelta(seconds=1))
-            github_part = get_participation(team_id, source_id)
+            github_part = get_participation(team_project_id, source_id)
             if another_branch == 0:
                 for developer in github_part:
                     developers[developer['name']] = {
@@ -175,11 +175,11 @@ def get_repo_info(team_id, source_id):
                         'commits': 1
                     }
                 else:
-                    print('entre al else de los commits')
+                    #print('entre al else de los commits')
                     developers[author]['commits'] += 1
                     # Si hay al menos un commit, se debe mantener la cuenta
                     another_branch = 1
-                    print(developers[author]['commits'])
+                    #print(developers[author]['commits'])
                 # Se suma uno al total de commits nuevos
                 total_commits += 1
                 additions = 0
@@ -195,9 +195,9 @@ def get_repo_info(team_id, source_id):
 
                 developers[author]['additions'] += additions
                 developers[author]['deletions'] += deletions
-                print('sume additions y deletions')
-                print(developers[author]['additions'])
-                print(developers[author]['deletions'])
+                #print('sume additions y deletions')
+                #print(developers[author]['additions'])
+                #print(developers[author]['deletions'])
                 
                 # Se actualiza la fecha con la del commit analizado
                 # para finalmente obtener la mayor fecha
@@ -213,7 +213,7 @@ def get_repo_info(team_id, source_id):
     # Se calculan los totales (additions, deletions, commits) en el repositorio
     # primero se revisa si existe la instancia de github info y los atributos necesarios
     # (se asume que si existe uno de los totales es porque ya paso por eso al menos una vez)
-    github_additions_exists = get_info_total_additions_exists(team_id, source_id)
+    github_additions_exists = get_info_total_additions_exists(team_project_id, source_id)
     if github_info == None or github_additions_exists == None:
         # No hay registro previo => los totales actuales son 0
         new_total_additions = 0
@@ -235,27 +235,27 @@ def get_repo_info(team_id, source_id):
     #print(developers)
     for developer in developers.keys():
         # Se actualiza la informacion de los developers en github_participation
-        developer_db = find_developer(team_id, source_id, developer)
+        developer_db = find_developer(team_project_id, source_id, developer)
         if developer_db != None:
             # Si existe, se actualizan sus datos
             new_additions = developers[developer]['additions']
             new_deletions = developers[developer]['deletions']
             new_commits = developers[developer]['commits']
-            update_github_participation(team_id, source_id, developer, new_additions, new_deletions, new_commits)
+            update_github_participation(team_project_id, source_id, developer, new_additions, new_deletions, new_commits)
         else:
             # Si no existe, se inserta
             #print("se inserta developer en participacion")
-            insert_github_participation(team_id, source_id, developer, developers)
+            insert_github_participation(team_project_id, source_id, developer, developers)
     # Se almacenan los totales en github_info
     #print("se actualiza la informacion")
-    update_info(github_info, team_id, source_id, repo_name, new_total_additions, new_total_deletions, new_total_commits, last_date)
+    update_info(github_info, team_project_id, source_id, repo_name, new_total_additions, new_total_deletions, new_total_commits, last_date)
 
     return developers
 
-def calculate_percentages(team_id, source_id):
+def calculate_percentages(team_project_id, source_id):
     print("entre a calculate_percentages")
-    developers = find_developers(team_id, source_id)
-    github_info = get_only_github_info(team_id, source_id)
+    developers = find_developers(team_project_id, source_id)
+    github_info = get_only_github_info(team_project_id, source_id)
     
     total_additions = github_info['total_additions']
     total_deletions = github_info['total_deletions']
@@ -274,9 +274,9 @@ def calculate_percentages(team_id, source_id):
         else:
             commits_per = int(developer['commits']/total_commits * 100)
 
-        update_developer_github_participation(team_id, source_id, developer['name'], additions_per, deletions_per, commits_per)
+        update_developer_github_participation(team_project_id, source_id, developer['name'], additions_per, deletions_per, commits_per)
     return 
 
-def get_participation(team_id, source_id):
-    participation = get_participation_db(team_id, source_id)
+def get_participation(team_project_id, source_id):
+    participation = get_participation_db(team_project_id, source_id)
     return participation
