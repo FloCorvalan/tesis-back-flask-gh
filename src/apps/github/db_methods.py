@@ -148,6 +148,21 @@ def insert_github_repo_info(commit_sha, author, additions, timestamp, team_proje
 ############### PRODUCTIVITY ####################
 #################################################
 
+def get_developers(team_id):
+    team = mongo.db.get_collection('team').find_one({'_id': ObjectId(team_id)})
+    developers = team['developers']
+    return developers
+
+def get_developer_names(dev_id):
+    dev = mongo.db.get_collection('developer').find_one({'_id': ObjectId(dev_id)})
+    github_name = dev['github']
+    name = dev['name']
+    return github_name, name
+
 def get_prod_docs(team_project_id):
     docs = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id})
+    return docs
+
+def get_prod_docs_by_developer(team_project_id, developer):
+    docs = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id, 'author': developer})
     return docs

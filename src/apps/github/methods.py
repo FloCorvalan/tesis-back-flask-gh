@@ -5,11 +5,12 @@ EXPRESSIONS = ['code', 'test']
 #####################################################################
 
 import json
-from sqlite3 import Timestamp
 from github import Github
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 import re
+from bson import json_util
+import pandas as pd
 
 import github
 from .db_methods import *
@@ -305,18 +306,62 @@ def get_participation(team_project_id, source_id):
 ############### PRODUCTIVITY ####################
 #################################################
 
-import pandas as pd
-
-def get_prod_info(team_project_id):
+def get_prod_info2(team_project_id):
     docs = get_prod_docs(team_project_id)
     df = pd.DataFrame(list(docs))
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
     #df = df.set_index('timestamp') 
     #df['weekly'] = df['additions'].resample('W').transform('sum')
+    mini = min(df['timestamp'])
+    min_date = {'timestamp':(mini - timedelta(days=7))}
+    df = df.append(min_date, ignore_index=True)
+    dt_range = pd.date_range(start=mini, end=datetime.now() + timedelta(weeks=2), freq='2W-Mon')
     df1 = df.resample('2W-Mon', on='timestamp')['additions'].sum()
     df1 = pd.DataFrame(df1)
     df2 = df.resample('2W-Mon', on='timestamp')['additions'].count()
     df2 = pd.DataFrame(df2)
+
+    additions_list = list(df1['additions'])
+    print(type(additions_list))
     #print(df)
-    
-    return df1.to_html() + df2.to_html()
+    #print(pd.date_range(start='21/03/2022', end=datetime.now() + timedelta(weeks=2), freq='2W-Mon')
+    print(dt_range)
+    return df.to_html() + df1.to_html() + df2.to_html()
+
+def get_prod_info(team_id, team_project_id, min_date):
+    developers = get_developers(team_id)
+
+    developers_info = []
+
+    for developer in developers:
+        github_name, name = get_developer_names(developer)
+        docs = get_prod_docs_by_developer(team_project_id, github_name)
+        df = pd.DataFrame(list(docs))
+        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+
+        # Se agrega la fecha minima entre las 3 herramientas para hacer los intervalos desde ahi
+        min_date_dic = {'timestamp':min_date}
+        df = df.append(min_date_dic, ignore_index=True)
+
+        # Se crea un dataframe para las additions en intervalos
+        df1 = df.resample('2W-Mon', on='timestamp')['additions'].sum()
+        df1 = pd.DataFrame(df1)
+
+        # Se crea un dataframe para los commits en intervalos
+        df2 = df.resample('2W-Mon', on='timestamp')['additions'].count()
+        df2 = pd.DataFrame(df2)
+
+        # Se formatean las fechas de los intervalos
+        df1.index = df1.index.strftime("%Y/%m/%d")
+
+        # Se crea el objeto del developer que será enviado al frontend
+        obj = {
+            'name': name,
+            'dates': list(df1.index),
+            'additions': list(df1['additions']),
+            'commits': list(df2['additions'])
+        }
+
+        developers_info.append(obj)
+
+    return developers_info
