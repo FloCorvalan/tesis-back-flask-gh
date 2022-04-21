@@ -212,12 +212,11 @@ def get_repo_info(team_project_id, source_id):
                 # para finalmente obtener la mayor fecha
                 if last_date < commit.commit.author.date:
                     last_date = commit.commit.author.date
-        '''print('ADDITIONS DEVELOPER TOTAL')
-        print(developers[author]['additions'])
-        print('DELETIONS DEVELOPER TOTAL')
-        print(developers[author]['deletions'])
-        print('COMMITS DEVELOPER TOTAL')
-        print(developers[author]['commits'])'''
+                
+                # Se guarda la informacion para conocer la productividad
+                # en github_repo_info
+                time = datetime.strptime(str(commit.commit.author.date).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp()
+                insert_github_repo_info(commit.commit.sha, author, additions, time)
 
     # Se calculan los totales (additions, deletions, commits) en el repositorio
     # primero se revisa si existe la instancia de github info y los atributos necesarios

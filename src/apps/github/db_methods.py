@@ -133,3 +133,11 @@ def get_participation_db(team_project_id, source_id):
 def get_info_total_additions_exists(team_project_id, source_id):
     info_additions_exists = mongo.db.get_collection('github_info').find_one({'team_project_id': team_project_id, 'source_id': source_id, 'total_additions': {'$exists': True}})
     return info_additions_exists
+
+def insert_github_repo_info(commit_sha, author, additions, timestamp):
+    mongo.db.get_collection('github_repo_info').insert_one({
+        'commit_sha': commit_sha, 
+        'author': author, 
+        'additions': additions, 
+        'timestamp': timestamp
+    })
