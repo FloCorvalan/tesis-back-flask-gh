@@ -133,6 +133,7 @@ def get_repo_info(team_project_id, source_id):
     total_additions = 0
     total_deletions = 0
     total_commits = 0
+    total_files_added = 0
 
     # Se obtiene en numero total de commits
     commits_sha = []
@@ -159,7 +160,8 @@ def get_repo_info(team_project_id, source_id):
                     developers[developer['name']] = {
                         'additions': developer['additions'],
                         'deletions': developer['deletions'],
-                        'commits': developer['commits']
+                        'commits': developer['commits'],
+                        'files_added': developer['files_added']
                     }
         #print("RAMA " + branch.name)
         #cont = 0
@@ -172,7 +174,8 @@ def get_repo_info(team_project_id, source_id):
                     developers[author] = {
                         'additions': 0,
                         'deletions': 0,
-                        'commits': 1
+                        'commits': 1,
+                        'files_added': 0
                     }
                 else:
                     #print('entre al else de los commits')
@@ -184,6 +187,7 @@ def get_repo_info(team_project_id, source_id):
                 total_commits += 1
                 additions = 0
                 deletions = 0
+                files_added = 0
                 #print('Contador = ' + str(cont))
                 for file in commit.files:
                     additions += file.additions
@@ -193,8 +197,13 @@ def get_repo_info(team_project_id, source_id):
                     total_additions += file.additions
                     total_deletions += file.deletions
 
+                    if file.status == 'added':
+                        files_added += 1
+                        total_files_added += 1
+
                 developers[author]['additions'] += additions
                 developers[author]['deletions'] += deletions
+                developers[author]['files_added'] += files_added
                 #print('sume additions y deletions')
                 #print(developers[author]['additions'])
                 #print(developers[author]['deletions'])
@@ -219,15 +228,18 @@ def get_repo_info(team_project_id, source_id):
         new_total_additions = 0
         new_total_deletions = 0
         new_total_commits = 0
+        new_total_files_added = 0
     else:
         # Si hay registro previo => se obtienen los totales previamente registrados
         new_total_additions = github_info['total_additions']
         new_total_deletions = github_info['total_deletions']
         new_total_commits = github_info['total_commits']
+        new_total_files_added = github_info['total_files_added']
     # Se acumulan los nuevos resultados (de lo que se obtuvo revisando la actividad de los developers)
     new_total_additions += total_additions
     new_total_deletions += total_deletions
     new_total_commits += total_commits
+    new_total_files_added += total_files_added
 
     #print(new_total_additions)
     #print(new_total_deletions)
@@ -241,25 +253,27 @@ def get_repo_info(team_project_id, source_id):
             new_additions = developers[developer]['additions']
             new_deletions = developers[developer]['deletions']
             new_commits = developers[developer]['commits']
-            update_github_participation(team_project_id, source_id, developer, new_additions, new_deletions, new_commits)
+            new_files_added = developers[developer]['files_added']
+            update_github_participation(team_project_id, source_id, developer, new_additions, new_deletions, new_commits, new_files_added)
         else:
             # Si no existe, se inserta
             #print("se inserta developer en participacion")
             insert_github_participation(team_project_id, source_id, developer, developers)
     # Se almacenan los totales en github_info
     #print("se actualiza la informacion")
-    update_info(github_info, team_project_id, source_id, repo_name, new_total_additions, new_total_deletions, new_total_commits, last_date)
+    update_info(github_info, team_project_id, source_id, repo_name, new_total_additions, new_total_deletions, new_total_commits, new_total_files_added, last_date)
 
     return developers
 
 def calculate_percentages(team_project_id, source_id):
-    print("entre a calculate_percentages")
+    #print("entre a calculate_percentages")
     developers = find_developers(team_project_id, source_id)
     github_info = get_only_github_info(team_project_id, source_id)
     
     total_additions = github_info['total_additions']
     total_deletions = github_info['total_deletions']
     total_commits = github_info['total_commits']
+    total_files_added = github_info['total_files_added']
     for developer in developers:
         if total_additions == 0:
             additions_per = 0
@@ -273,8 +287,12 @@ def calculate_percentages(team_project_id, source_id):
             commits_per = 0
         else:
             commits_per = int(developer['commits']/total_commits * 100)
+        if total_files_added == 0:
+            files_added_per = 0
+        else:
+            files_added_per = int(developer['files_added']/total_files_added * 100)
 
-        update_developer_github_participation(team_project_id, source_id, developer['name'], additions_per, deletions_per, commits_per)
+        update_developer_github_participation(team_project_id, source_id, developer['name'], additions_per, deletions_per, commits_per, files_added_per)
     return 
 
 def get_participation(team_project_id, source_id):

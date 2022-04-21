@@ -64,11 +64,12 @@ def get_participation(team_project_id, source_id):
     github_part = mongo.db.get_collection('github_participation').find({'team_project_id': team_project_id, 'source_id': source_id})
     return github_part
 
-def update_github_participation(team_project_id, source_id, developer, new_additions, new_deletions, new_commits):
+def update_github_participation(team_project_id, source_id, developer, new_additions, new_deletions, new_commits, new_files_added):
     mongo.db.get_collection('github_participation').update_one({'team_project_id': team_project_id, 'source_id': source_id, 'name': developer}, {'$set': {
                 'additions': new_additions,
                 'deletions': new_deletions,
-                'commits': new_commits
+                'commits': new_commits,
+                'files_added': new_files_added
             }})
 
 def insert_github_participation(team_project_id, source_id, developer, developers):
@@ -78,10 +79,11 @@ def insert_github_participation(team_project_id, source_id, developer, developer
                 'name': developer,
                 'additions': developers[developer]['additions'],
                 'deletions': developers[developer]['deletions'],
-                'commits': developers[developer]['commits']
+                'commits': developers[developer]['commits'],
+                'files_added': developers[developer]['files_added'],
             })
 
-def update_info(github_info, team_project_id, source_id, repo_name, total_additions, total_deletions, total_commits, last_date_commit):
+def update_info(github_info, team_project_id, source_id, repo_name, total_additions, total_deletions, total_commits, total_files_added,last_date_commit):
     if github_info == None:
         mongo.db.get_collection('github_info').insert_one({
                 'team_project_id': team_project_id,
@@ -90,23 +92,26 @@ def update_info(github_info, team_project_id, source_id, repo_name, total_additi
                 'total_additions': total_additions, 
                 'total_deletions': total_deletions,
                 'total_commits': total_commits, 
-                'last_date_info': datetime.now(),
-                'last_date_commit': last_date_commit
+                'total_files_added': total_files_added,
+                'last_date_info': datetime.now(), # Indica la fecha en que se reviso por ultima vez
+                'last_date_commit': last_date_commit # Indica la fecha del ultimo commit revisado
             })
     else:
         mongo.db.get_collection('github_info').update_one({'team_project_id': team_project_id, 'source_id': source_id}, {'$set': {
                 'total_additions': total_additions, 
                 'total_deletions': total_deletions,
-                'total_commits': total_commits, 
+                'total_commits': total_commits,
+                'total_files_added': total_files_added,
                 'last_date_info': datetime.now(),
                 'last_date_commit': last_date_commit
             }})
 
-def update_developer_github_participation(team_project_id, source_id, developer, additions_per, deletions_per, commits_per):
+def update_developer_github_participation(team_project_id, source_id, developer, additions_per, deletions_per, commits_per, files_added_per):
     mongo.db.get_collection('github_participation').update_one({'team_project_id': team_project_id, 'source_id': source_id, 'name': developer}, {'$set': {
                 'additions_per': additions_per,
                 'deletions_per': deletions_per,
-                'commits_per': commits_per
+                'commits_per': commits_per,
+                'files_added_per': files_added_per
             }})
 
 def find_developer(team_project_id, source_id, developer):
