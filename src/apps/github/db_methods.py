@@ -149,4 +149,5 @@ def insert_github_repo_info(commit_sha, author, additions, timestamp, team_proje
 #################################################
 
 def get_prod_docs(team_project_id):
-    return
+    docs = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id})
+    return docs

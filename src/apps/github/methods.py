@@ -5,6 +5,7 @@ EXPRESSIONS = ['code', 'test']
 #####################################################################
 
 import json
+from sqlite3 import Timestamp
 from github import Github
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
@@ -306,3 +307,16 @@ def get_participation(team_project_id, source_id):
 
 import pandas as pd
 
+def get_prod_info(team_project_id):
+    docs = get_prod_docs(team_project_id)
+    df = pd.DataFrame(list(docs))
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+    #df = df.set_index('timestamp') 
+    #df['weekly'] = df['additions'].resample('W').transform('sum')
+    df1 = df.resample('2W-Mon', on='timestamp')['additions'].sum()
+    df1 = pd.DataFrame(df1)
+    df2 = df.resample('2W-Mon', on='timestamp')['additions'].count()
+    df2 = pd.DataFrame(df2)
+    #print(df)
+    
+    return df1.to_html() + df2.to_html()
