@@ -109,7 +109,7 @@ def get_github_participation():
 #------------------------------------------------------------------
 
 ###################################################################
-################### ALL PARTICIPATION PROCESS #####################
+################### ALL PRODUCTIVITY PROCESS ######################
 ###################################################################
 
 @github.route('/github/prod', methods=['GET'])
@@ -121,7 +121,9 @@ def get_github_productivity():
     #source_id = '6255d136c04ac27bbad0276d'
     min_date_str = '2022-03-21 05:23:38'
     min_date = datetime.strptime(str(min_date_str).split(".")[0], "%Y-%m-%d %H:%M:%S")
-    prod = get_prod_info(team_id, team_project_id, min_date)
+    max_date_str = '2022-05-21 05:23:38'
+    max_date = datetime.strptime(str(max_date_str).split(".")[0], "%Y-%m-%d %H:%M:%S")
+    prod = get_prod_info(team_id, team_project_id, min_date, max_date)
     response = json_util.dumps(prod)
     return Response(response, mimetype='application/json')
 

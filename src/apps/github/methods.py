@@ -328,7 +328,7 @@ def get_prod_info2(team_project_id):
     print(dt_range)
     return df.to_html() + df1.to_html() + df2.to_html()
 
-def get_prod_info(team_id, team_project_id, min_date):
+def get_prod_info(team_id, team_project_id, min_date, max_date):
     developers = get_developers(team_id)
 
     developers_info = []
@@ -336,32 +336,57 @@ def get_prod_info(team_id, team_project_id, min_date):
     for developer in developers:
         github_name, name = get_developer_names(developer)
         docs = get_prod_docs_by_developer(team_project_id, github_name)
-        df = pd.DataFrame(list(docs))
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+        if docs != None:
+            df = pd.DataFrame(list(docs))
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
 
-        # Se agrega la fecha minima entre las 3 herramientas para hacer los intervalos desde ahi
-        min_date_dic = {'timestamp':min_date}
-        df = df.append(min_date_dic, ignore_index=True)
+            # Se agrega la fecha minima entre las 3 herramientas para hacer los intervalos desde ahi
+            min_date_dic = {'timestamp':min_date}
+            df = df.append(min_date_dic, ignore_index=True)
 
-        # Se crea un dataframe para las additions en intervalos
-        df1 = df.resample('2W-Mon', on='timestamp')['additions'].sum()
-        df1 = pd.DataFrame(df1)
+            # Se agrega la fecha máxima entre las 3 herramientas para hacer los intervalos hasta ahi
+            max_date_dic = {'timestamp':max_date}
+            df = df.append(max_date_dic, ignore_index=True)
 
-        # Se crea un dataframe para los commits en intervalos
-        df2 = df.resample('2W-Mon', on='timestamp')['additions'].count()
-        df2 = pd.DataFrame(df2)
+            # Se crea un dataframe para las additions en intervalos
+            df1 = df.resample('2W-Mon', on='timestamp')['additions'].sum()
+            df1 = pd.DataFrame(df1)
 
-        # Se formatean las fechas de los intervalos
-        df1.index = df1.index.strftime("%Y/%m/%d")
+            # Se crea un dataframe para los commits en intervalos
+            df2 = df.resample('2W-Mon', on='timestamp')['additions'].count()
+            df2 = pd.DataFrame(df2)
 
-        # Se crea el objeto del developer que será enviado al frontend
-        obj = {
-            'name': name,
-            'dates': list(df1.index),
-            'additions': list(df1['additions']),
-            'commits': list(df2['additions'])
-        }
+            # Se formatean las fechas de los intervalos
+            df1.index = df1.index.strftime("%Y/%m/%d")
 
-        developers_info.append(obj)
+            # Se crea el objeto del developer que será enviado al frontend
+            obj = {
+                'name': name,
+                'dates': list(df1.index),
+                'additions': list(df1['additions']),
+                'commits': list(df2['additions'])
+            }
+
+            developers_info.append(obj)
+        else:
+            # Se crean los intervalos de fechas
+            dt_range = pd.date_range(start=min_date, end=max_date + timedelta(weeks=2), freq='2W-Mon')
+
+            # Por si el timedelta agrega una mas de las que se necesitan segun lo del if
+            if dt_range[-2] > max_date:
+                dt_range = dt_range.delete(-1)
+
+            # Se formatean las fechas de los intervalos
+            dt_range = dt_range.strftime("%Y/%m/%d")
+
+            # Se crea el objeto con ceros del developer que será enviado al frontend
+            obj = {
+                'name': name,
+                'dates': list(dt_range),
+                'additions': [0] * len(dt_range),
+                'commits': [0] * len(dt_range)
+            }
+
+            developers_info.append(obj)
 
     return developers_info
