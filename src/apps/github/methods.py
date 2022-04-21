@@ -216,7 +216,7 @@ def get_repo_info(team_project_id, source_id):
                 # Se guarda la informacion para conocer la productividad
                 # en github_repo_info
                 time = datetime.strptime(str(commit.commit.author.date).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp()
-                insert_github_repo_info(commit.commit.sha, author, additions, time)
+                insert_github_repo_info(commit.commit.sha, author, additions, time, team_project_id, source_id)
 
     # Se calculan los totales (additions, deletions, commits) en el repositorio
     # primero se revisa si existe la instancia de github info y los atributos necesarios
@@ -297,3 +297,12 @@ def calculate_percentages(team_project_id, source_id):
 def get_participation(team_project_id, source_id):
     participation = get_participation_db(team_project_id, source_id)
     return participation
+
+
+
+#################################################
+############### PRODUCTIVITY ####################
+#################################################
+
+import pandas as pd
+
