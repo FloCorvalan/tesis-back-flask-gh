@@ -164,7 +164,7 @@ def get_prod_docs(team_project_id):
     return docs
 
 def get_prod_docs_by_developer(team_project_id, developer):
-    docs = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id, 'author': 'developer'})
+    docs = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id, 'author': developer})
     if docs.count() != 0:
         return docs
     return None

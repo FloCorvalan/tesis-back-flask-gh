@@ -11,8 +11,9 @@ from datetime import datetime, timedelta
 import re
 from bson import json_util
 import pandas as pd
-
+import requests
 import github
+from flask import jsonify
 from .db_methods import *
 
 
@@ -390,3 +391,25 @@ def get_prod_info(team_id, team_project_id, min_date, max_date):
             developers_info.append(obj)
 
     return developers_info
+
+def get_min_max_dates(team_id, team_project_id):
+    headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    }
+
+    data = { 
+        'team_id': team_id, 
+        'team_project_id': team_project_id
+    }
+
+    data = json.dumps(data)
+
+    response = requests.request('GET', 'http://127.0.0.1:5001/prod/get-min-max-date', headers=headers, data=data)
+
+    response_json = json_util.loads(response.text)
+
+    min_date = response_json['min_date']
+    max_date = response_json['max_date']
+
+    return min_date, max_date

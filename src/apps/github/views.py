@@ -118,10 +118,13 @@ def get_github_productivity():
     #source_id = request.json['source_id']
     team_id = '6241fad36d714f635bafbc9f'
     team_project_id = '625f1e47bffb6a90d59d3e06'
-    #source_id = '6255d136c04ac27bbad0276d'
-    min_date_str = '2022-03-21 05:23:38'
+
+    # Se buscan las fechas min y max
+    min_date_str, max_date_str = get_min_max_dates(team_id, team_project_id)
+
+    #min_date_str = '2022-03-21 05:23:38'
     min_date = datetime.strptime(str(min_date_str).split(".")[0], "%Y-%m-%d %H:%M:%S")
-    max_date_str = '2022-05-21 05:23:38'
+    #max_date_str = '2022-05-21 05:23:38'
     max_date = datetime.strptime(str(max_date_str).split(".")[0], "%Y-%m-%d %H:%M:%S")
     prod = get_prod_info(team_id, team_project_id, min_date, max_date)
     response = json_util.dumps(prod)
