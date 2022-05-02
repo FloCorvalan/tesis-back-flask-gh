@@ -2,7 +2,7 @@ from fileinput import filename
 from math import prod
 from sre_constants import BRANCH
 from traceback import print_tb
-from flask import Blueprint, Response
+from flask import Blueprint, Response, request
 from .methods import *
 import json
 from bson import json_util
@@ -58,12 +58,12 @@ def test4():
 ########################## REGISTERS ##############################
 ###################################################################
 
-@github.route('/github', methods=['GET'])
+@github.route('/github', methods=['POST'])
 def get_registers_service():
-    #team_project_id = request.json['team_project_id']
-    #source_id = request.json['source_id']
-    team_project_id = '625f1e47bffb6a90d59d3e06'
-    source_id = '6255d136c04ac27bbad0276d'
+    team_project_id = request.json['team_project_id']
+    source_id = request.json['source_id']
+    #team_project_id = '625f1e47bffb6a90d59d3e06'
+    #source_id = '6255d136c04ac27bbad0276d'
     response = get_registers(team_project_id, source_id)
     return response
 
@@ -85,12 +85,12 @@ def get_github_repo_info():
 ################### ALL PARTICIPATION PROCESS #####################
 ###################################################################
 
-@github.route('/github/participation', methods=['GET'])
+@github.route('/github/participation', methods=['POST'])
 def get_github_participation():
-    #team_project_id = request.json['team_project_id']
-    #source_id = request.json['source_id']
-    team_project_id = '625f1e47bffb6a90d59d3e06'
-    source_id = '6255d136c04ac27bbad0276d'
+    team_project_id = request.json['team_project_id']
+    source_id = request.json['source_id']
+    #team_project_id = '625f1e47bffb6a90d59d3e06'
+    #source_id = '6255d136c04ac27bbad0276d'
     # Se obtiene la informacion general del repositorio (totales) y de los desarrolladores
     get_repo_info(team_project_id, source_id)
 
@@ -112,12 +112,12 @@ def get_github_participation():
 ################### ALL PRODUCTIVITY PROCESS ######################
 ###################################################################
 
-@github.route('/github/prod', methods=['GET'])
+@github.route('/github/prod', methods=['POST'])
 def get_github_productivity():
-    #team_project_id = request.json['team_project_id']
-    #source_id = request.json['source_id']
-    team_id = '6241fad36d714f635bafbc9f'
-    team_project_id = '625f1e47bffb6a90d59d3e06'
+    team_id = request.json['team_id']
+    team_project_id = request.json['team_project_id']
+    #team_id = '6241fad36d714f635bafbc9f'
+    #team_project_id = '625f1e47bffb6a90d59d3e06'
 
     # Se buscan las fechas min y max
     min_date_str, max_date_str = get_min_max_dates(team_id, team_project_id)
