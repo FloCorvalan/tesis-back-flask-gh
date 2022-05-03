@@ -61,6 +61,8 @@ def get_registers(team_project_id, source_id):
 
     github_info, last_date_exists = get_github_info(team_project_id, source_id, 'last_date')
    
+    print('LAAAAAAAAAAAAAAAAST')
+    print(last_date_exists)
     commits_sha = []
     for branch in branches:
         if github_info == None or last_date_exists == None:
@@ -110,7 +112,7 @@ def get_registers(team_project_id, source_id):
                     #        'tool': 'github',
                     #        'userName': author
                     #        })
-                    time = datetime.strptime(str(time).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp()
+                    time = datetime.strptime(str(time).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp() - 14400 #Se restan las 4 horas de diferencia de UTC, la hora de los servidores de GitHub
                     save_register(team_project_id, case_id, activity, time, author)
     #print(github_info)
     update_last_date(github_info, team_project_id, source_id, repo_name) # Si no existe, la crea
@@ -218,7 +220,7 @@ def get_repo_info(team_project_id, source_id):
                 
                 # Se guarda la informacion para conocer la productividad
                 # en github_repo_info
-                time = datetime.strptime(str(commit.commit.author.date).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp()
+                time = datetime.strptime(str(commit.commit.author.date).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp() - 14400
                 insert_github_repo_info(commit.commit.sha, author, additions, time, team_project_id, source_id)
 
     # Se calculan los totales (additions, deletions, commits) en el repositorio
