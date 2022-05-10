@@ -48,11 +48,26 @@ def extract_reg_expressions():
     #print(expressions)
     return expressions
 
+def get_actual_case_id(team_project_id, last_case_id, timestamp):
+    last_case_id_jira = get_last_case_id_gh(team_project_id)
+    cont = last_case_id_jira
+    case_id = None
+    while(cont < last_case_id):
+        ini, fin = search_timestamps(cont, team_project_id)
+        if(timestamp >= ini and timestamp <= fin):
+            case_id = cont
+            return case_id
+        cont += 1
+    ini, fin = search_timestamps(last_case_id, team_project_id)
+    if(timestamp >= ini):
+        return last_case_id
+    return 0
+
 def get_registers(team_project_id, source_id):
 
     dic = extract_reg_expressions()
 
-    repo_name, case_id = get_source_info(team_project_id, source_id)
+    repo_name, last_case_id = get_source_info(team_project_id, source_id)
 
     user = get_authenticated_user(source_id)
 
@@ -113,6 +128,7 @@ def get_registers(team_project_id, source_id):
                     #        'userName': author
                     #        })
                     time = datetime.strptime(str(time).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp() - 14400 #Se restan las 4 horas de diferencia de UTC, la hora de los servidores de GitHub
+                    case_id = get_actual_case_id(team_project_id, last_case_id, time)
                     save_register(team_project_id, case_id, activity, time, author)
     #print(github_info)
     update_last_date(github_info, team_project_id, source_id, repo_name) # Si no existe, la crea

@@ -6,6 +6,27 @@ else:
     from database.database import mongo
 from bson.objectid import ObjectId
 from datetime import datetime
+import pymongo
+
+def search_timestamps(case_id, team_project_id):
+    team_project_max = mongo.db.get_collection('registers').find({'team_project_id': team_project_id, 'case_id': case_id}).sort('timestamp', pymongo.DESCENDING)
+    team_project_min = mongo.db.get_collection('registers').find({'team_project_id': team_project_id, 'case_id': case_id}).sort('timestamp', pymongo.ASCENDING)
+    if(team_project_max.count() > 0):
+        max = team_project_max[0]['timestamp']
+    else:
+        max = 0
+    if(team_project_min.count() > 0):
+        min = team_project_min[0]['timestamp']
+    else:
+        min = 0
+    return min, max
+
+def get_last_case_id_gh(team_project_id):
+    team_project = mongo.db.get_collection('registers').find_one({'team_proejct_id': ObjectId(team_project_id), 'tool': 'github'})
+    if(team_project == None):
+        return 0
+    case_id = team_project['case_id']
+    return case_id
 
 def get_authentication_info(source_id):
     source = mongo.db.get_collection('source').find_one({'_id': ObjectId(source_id)})
