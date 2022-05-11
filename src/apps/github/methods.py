@@ -53,14 +53,16 @@ def get_actual_case_id(team_project_id, last_case_id, timestamp):
     cont = last_case_id_jira
     case_id = None
     while(cont < last_case_id):
-        ini, fin = search_timestamps(cont, team_project_id)
-        if(timestamp >= ini and timestamp <= fin):
+        ant = cont - 1
+        ini, fin = search_timestamps(cont, ant, team_project_id)
+        if(timestamp > ini and timestamp <= fin):
             case_id = cont
             return case_id
         cont += 1
-    ini, fin = search_timestamps(last_case_id, team_project_id)
+    ini, fin = search_timestamps(last_case_id, last_case_id - 1, team_project_id)
     if(timestamp >= ini):
         return last_case_id
+    print("CASE_ID_0")
     return 0
 
 def get_registers(team_project_id, source_id):

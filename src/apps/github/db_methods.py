@@ -8,9 +8,9 @@ from bson.objectid import ObjectId
 from datetime import datetime
 import pymongo
 
-def search_timestamps(case_id, team_project_id):
+def search_timestamps(case_id, ant, team_project_id):
+    team_project_min = mongo.db.get_collection('registers').find({'team_project_id': team_project_id, 'case_id': ant}).sort('timestamp', pymongo.DESCENDING)
     team_project_max = mongo.db.get_collection('registers').find({'team_project_id': team_project_id, 'case_id': case_id}).sort('timestamp', pymongo.DESCENDING)
-    team_project_min = mongo.db.get_collection('registers').find({'team_project_id': team_project_id, 'case_id': case_id}).sort('timestamp', pymongo.ASCENDING)
     if(team_project_max.count() > 0):
         max = team_project_max[0]['timestamp']
     else:
