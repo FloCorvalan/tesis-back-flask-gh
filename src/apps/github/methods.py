@@ -49,18 +49,20 @@ def extract_reg_expressions():
     return expressions
 
 def get_actual_case_id(team_project_id, last_case_id, timestamp):
-    last_case_id_jira = get_last_case_id_gh(team_project_id)
-    cont = last_case_id_jira
+    last_case_id_gh = get_last_case_id_gh(team_project_id)
+    cont = last_case_id_gh
     case_id = None
     while(cont < last_case_id):
         ant = cont - 1
         ini, fin = search_timestamps(cont, ant, team_project_id)
         if(timestamp > ini and timestamp <= fin):
             case_id = cont
+            print("CASE_ID ", case_id)
             return case_id
         cont += 1
     ini, fin = search_timestamps(last_case_id, last_case_id - 1, team_project_id)
-    if(timestamp >= ini):
+    if(timestamp > ini):
+        print("LAST_CASE_ID ", last_case_id)
         return last_case_id
     print("CASE_ID_0")
     return 0
@@ -70,7 +72,7 @@ def get_registers(team_project_id, source_id):
     dic = extract_reg_expressions()
 
     repo_name, last_case_id = get_source_info(team_project_id, source_id)
-
+    print('last_case_id', last_case_id)
     user = get_authenticated_user(source_id)
 
     repo = user.get_repo(repo_name)

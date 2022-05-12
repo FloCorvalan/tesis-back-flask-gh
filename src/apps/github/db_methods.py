@@ -22,10 +22,10 @@ def search_timestamps(case_id, ant, team_project_id):
     return min, max
 
 def get_last_case_id_gh(team_project_id):
-    team_project = mongo.db.get_collection('registers').find_one({'team_proejct_id': ObjectId(team_project_id), 'tool': 'github'})
-    if(team_project == None):
+    team_project = mongo.db.get_collection('registers').find({'team_project_id': ObjectId(team_project_id), 'tool': 'github'}).sort('case_id', pymongo.DESCENDING)
+    if(team_project.count() == 0):
         return 0
-    case_id = team_project['case_id']
+    case_id = team_project[0]['case_id']
     return case_id
 
 def get_authentication_info(source_id):
