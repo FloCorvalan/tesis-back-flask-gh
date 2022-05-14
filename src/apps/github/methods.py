@@ -396,7 +396,7 @@ def get_prod_info(team_id, team_project_id, min_date, max_date):
             dt_range = pd.date_range(start=min_date, end=max_date + timedelta(weeks=2), freq='2W-Mon')
 
             # Por si el timedelta agrega una mas de las que se necesitan segun lo del if
-            if dt_range[-2] > max_date:
+            if len(dt_range) > 3 and dt_range[-2] > max_date:
                 dt_range = dt_range.delete(-1)
 
             # Se formatean las fechas de los intervalos
