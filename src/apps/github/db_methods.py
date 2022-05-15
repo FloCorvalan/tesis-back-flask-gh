@@ -147,9 +147,47 @@ def get_only_github_info(team_project_id, source_id):
     github_info = mongo.db.get_collection('github_info').find_one({'team_project_id': team_project_id, 'source_id': source_id})
     return github_info
 
+def translate_name(db_developers, part_name):
+    for dev in db_developers:
+        if(dev['github'] == part_name):
+            return dev['name'], dev
+    return None, None
+
+def find_team_developers(team_project_id):
+    teams = mongo.db.get_collection('team').find({'projects': {'$exists': True}, 'developers': {'$exists': True}})
+    for team in teams:
+        projects = team['projects']
+        for p in projects:
+            if(p == team_project_id):
+                return team['developers']
+    return None
+
 def get_participation_db(team_project_id, source_id):
-    participation = mongo.db.get_collection('github_participation').find({'team_project_id': team_project_id, 'source_id': source_id})
-    return participation
+    developers = mongo.db.get_collection('github_participation').find({'team_project_id': team_project_id, 'source_id': source_id})
+    developers_db = find_team_developers(team_project_id)
+    print(developers_db)
+    developers_db_names = []
+    if(developers_db != None):
+        for dev in developers_db:
+            developer = mongo.db.get_collection('developer').find_one({'_id': ObjectId(dev)})
+            developers_db_names.append(developer)
+    developers_send = []
+    for dev in developers:
+        name, developer = translate_name(developers_db_names, dev['name'])
+        if(name != None):
+            developers_db_names.remove(developer)
+            dev['name'] = name
+        developers_send.append(dev)
+    for dev in developers_db_names:
+        name = dev['name']
+        developers_send.append({
+            'name': name, 
+            'commits_per': 0,
+            'additions_per': 0, 
+            'deletions_per': 0,
+            'files_added_per': 0
+        })
+    return developers_send
 
 def get_info_total_additions_exists(team_project_id, source_id):
     info_additions_exists = mongo.db.get_collection('github_info').find_one({'team_project_id': team_project_id, 'source_id': source_id, 'total_additions': {'$exists': True}})

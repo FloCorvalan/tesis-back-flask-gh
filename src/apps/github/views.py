@@ -98,7 +98,7 @@ def get_github_participation():
     calculate_percentages(team_project_id, source_id)
 
     # Se obtiene la participacion de los desarrolladores
-    participation = get_participation(team_project_id, source_id)
+    participation = get_participation_method(team_project_id, source_id)
     
     response = json_util.dumps(participation)
     return Response(response, mimetype='application/json')

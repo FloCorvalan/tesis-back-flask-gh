@@ -319,7 +319,7 @@ def calculate_percentages(team_project_id, source_id):
         update_developer_github_participation(team_project_id, source_id, developer['name'], additions_per, deletions_per, commits_per, files_added_per)
     return 
 
-def get_participation(team_project_id, source_id):
+def get_participation_method(team_project_id, source_id):
     participation = get_participation_db(team_project_id, source_id)
     return participation
 
