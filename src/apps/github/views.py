@@ -120,7 +120,7 @@ def get_github_productivity():
     #team_project_id = '625f1e47bffb6a90d59d3e06'
 
     # Se buscan las fechas min y max
-    min_date_str, max_date_str = get_min_max_dates(team_id, team_project_id)
+    min_date_str, max_date_str = get_github_min_max_date(team_project_id)
 
     #min_date_str = '2022-03-21 05:23:38'
     min_date = datetime.strptime(str(min_date_str).split(".")[0], "%Y-%m-%d %H:%M:%S")

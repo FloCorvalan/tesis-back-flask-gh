@@ -177,7 +177,11 @@ def get_repo_info(team_project_id, source_id):
                 last_date = commits[0].commit.author.date
         else:
             #print('entre al ELSE')
-            last_date = get_github_info_last_date(team_project_id, source_id, 'last_date_commit')
+            last_date_db = get_github_info_last_date(team_project_id, source_id, 'last_date_commit')
+            if last_date == None:
+                last_date = last_date_db
+            elif last_date < last_date_db:
+                last_date = last_date_db
             commits = repo.get_commits(branch.name, since=last_date + timedelta(seconds=1))
             github_part = get_participation(team_project_id, source_id)
             if another_branch == 0:
@@ -235,6 +239,8 @@ def get_repo_info(team_project_id, source_id):
                 
                 # Se actualiza la fecha con la del commit analizado
                 # para finalmente obtener la mayor fecha
+                print(last_date)
+                print(commit.commit.author.date)
                 if last_date < commit.commit.author.date:
                     last_date = commit.commit.author.date
                 
@@ -285,6 +291,7 @@ def get_repo_info(team_project_id, source_id):
             insert_github_participation(team_project_id, source_id, developer, developers)
     # Se almacenan los totales en github_info
     #print("se actualiza la informacion")
+    print('LAST_DATE = ', last_date)
     update_info(github_info, team_project_id, source_id, repo_name, new_total_additions, new_total_deletions, new_total_commits, new_total_files_added, last_date)
 
     return developers
@@ -372,11 +379,11 @@ def get_prod_info(team_id, team_project_id, min_date, max_date):
             df = df.append(max_date_dic, ignore_index=True)
 
             # Se crea un dataframe para las additions en intervalos
-            df1 = df.resample('2W-Mon', on='timestamp')['additions'].sum()
+            df1 = df.resample('W-Mon', on='timestamp')['additions'].sum()
             df1 = pd.DataFrame(df1)
 
             # Se crea un dataframe para los commits en intervalos
-            df2 = df.resample('2W-Mon', on='timestamp')['additions'].count()
+            df2 = df.resample('W-Mon', on='timestamp')['additions'].count()
             df2 = pd.DataFrame(df2)
 
             # Se formatean las fechas de los intervalos
@@ -393,7 +400,7 @@ def get_prod_info(team_id, team_project_id, min_date, max_date):
             developers_info.append(obj)
         else:
             # Se crean los intervalos de fechas
-            dt_range = pd.date_range(start=min_date, end=max_date + timedelta(weeks=2), freq='2W-Mon')
+            dt_range = pd.date_range(start=min_date, end=max_date + timedelta(weeks=2), freq='W-Mon')
 
             # Por si el timedelta agrega una mas de las que se necesitan segun lo del if
             if len(dt_range) > 3 and dt_range[-2] > max_date:
@@ -434,4 +441,13 @@ def get_min_max_dates(team_id, team_project_id):
     min_date = response_json['min_date']
     max_date = response_json['max_date']
 
+    return min_date, max_date
+
+def get_github_min_max_date(team_project_id):
+    docs = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id})
+    df_docs = pd.DataFrame(list(docs))
+    min_date = df_docs['timestamp'].min()
+    max_date = df_docs['timestamp'].max()
+    min_date = datetime.fromtimestamp(min_date).strftime('%Y-%m-%d %H:%M:%S')
+    max_date = datetime.fromtimestamp(max_date).strftime('%Y-%m-%d %H:%M:%S')
     return min_date, max_date
