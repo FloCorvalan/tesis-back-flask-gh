@@ -328,7 +328,12 @@ def calculate_percentages(team_project_id, source_id):
 
 def get_participation_method(team_project_id, source_id):
     participation = get_participation_db(team_project_id, source_id)
-    return participation
+    totals = get_totals(team_project_id, source_id)
+    participation_send = {
+        'developers': participation,
+        'totals': totals
+    }
+    return participation_send
 
 
 

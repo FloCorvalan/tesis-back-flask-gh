@@ -162,7 +162,7 @@ def find_team_developers(team_project_id):
                 return team['developers']
     return None
 
-def get_participation_db(team_project_id, source_id):
+def get_participation_db_2(team_project_id, source_id):
     developers = mongo.db.get_collection('github_participation').find({'team_project_id': team_project_id, 'source_id': source_id})
     developers_db = find_team_developers(team_project_id)
     print(developers_db)
@@ -189,6 +189,10 @@ def get_participation_db(team_project_id, source_id):
         })
     return developers_send
 
+def get_participation_db(team_project_id, source_id):
+    developers = mongo.db.get_collection('github_participation').find({'team_project_id': team_project_id, 'source_id': source_id})
+    return developers
+
 def get_info_total_additions_exists(team_project_id, source_id):
     info_additions_exists = mongo.db.get_collection('github_info').find_one({'team_project_id': team_project_id, 'source_id': source_id, 'total_additions': {'$exists': True}})
     return info_additions_exists
@@ -202,6 +206,17 @@ def insert_github_repo_info(commit_sha, author, additions, timestamp, team_proje
         'team_project_id': team_project_id,
         'source_id': source_id
     })
+
+def get_totals(team_project_id, source_id):
+    totals = mongo.db.get_collection('github_info').find_one({'team_project_id': team_project_id, 'source_id': source_id})
+    totals_send = {}
+    if totals != None:
+        totals_send['total_additions'] = totals['total_additions']
+        totals_send['total_deletions'] = totals['total_deletions']
+        totals_send['total_commits'] = totals['total_commits']
+        totals_send['total_files_added'] = totals['total_files_added']
+    
+    return totals_send
 
 #################################################
 ############### PRODUCTIVITY ####################
