@@ -379,11 +379,11 @@ def get_prod_info(team_id, team_project_id, min_date, max_date):
             df = df.append(max_date_dic, ignore_index=True)
 
             # Se crea un dataframe para las additions en intervalos
-            df1 = df.resample('W-Mon', on='timestamp')['additions'].sum()
+            df1 = df.resample('D', on='timestamp')['additions'].sum()
             df1 = pd.DataFrame(df1)
 
             # Se crea un dataframe para los commits en intervalos
-            df2 = df.resample('W-Mon', on='timestamp')['additions'].count()
+            df2 = df.resample('D', on='timestamp')['additions'].count()
             df2 = pd.DataFrame(df2)
 
             # Se formatean las fechas de los intervalos
@@ -400,7 +400,7 @@ def get_prod_info(team_id, team_project_id, min_date, max_date):
             developers_info.append(obj)
         else:
             # Se crean los intervalos de fechas
-            dt_range = pd.date_range(start=min_date, end=max_date + timedelta(weeks=2), freq='W-Mon')
+            dt_range = pd.date_range(start=min_date, end=max_date + timedelta(weeks=2), freq='D')
 
             # Por si el timedelta agrega una mas de las que se necesitan segun lo del if
             if len(dt_range) > 3 and dt_range[-2] > max_date:
