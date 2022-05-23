@@ -222,7 +222,11 @@ def get_totals(team_project_id, source_id):
 ############### PRODUCTIVITY ####################
 #################################################
 
-def get_developers(team_id):
+def get_developers(team_project_id):
+    developers = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id}).distinct('author')
+    return developers
+
+def get_developers_2(team_id):
     team = mongo.db.get_collection('team').find_one({'_id': ObjectId(team_id)})
     developers = team['developers']
     return developers

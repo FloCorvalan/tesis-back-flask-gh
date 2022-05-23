@@ -364,13 +364,13 @@ def get_prod_info2(team_project_id):
     return df.to_html() + df1.to_html() + df2.to_html()
 
 def get_prod_info(team_id, team_project_id, min_date, max_date):
-    developers = get_developers(team_id)
+    developers = get_developers(team_project_id)
 
     developers_info = []
 
     for developer in developers:
-        github_name, name = get_developer_names(developer)
-        docs = get_prod_docs_by_developer(team_project_id, github_name)
+        #github_name, name = get_developer_names(developer)
+        docs = get_prod_docs_by_developer(team_project_id, developer)
         if docs != None:
             df = pd.DataFrame(list(docs))
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
@@ -396,34 +396,13 @@ def get_prod_info(team_id, team_project_id, min_date, max_date):
 
             # Se crea el objeto del developer que será enviado al frontend
             obj = {
-                'name': name,
+                'name': developer,
                 'dates': list(df1.index),
                 'additions': list(df1['additions']),
                 'commits': list(df2['additions'])
             }
 
             developers_info.append(obj)
-        else:
-            # Se crean los intervalos de fechas
-            dt_range = pd.date_range(start=min_date, end=max_date + timedelta(weeks=2), freq='D')
-
-            # Por si el timedelta agrega una mas de las que se necesitan segun lo del if
-            if len(dt_range) > 3 and dt_range[-2] > max_date:
-                dt_range = dt_range.delete(-1)
-
-            # Se formatean las fechas de los intervalos
-            dt_range = dt_range.strftime("%Y/%m/%d")
-
-            # Se crea el objeto con ceros del developer que será enviado al frontend
-            obj = {
-                'name': name,
-                'dates': list(dt_range),
-                'additions': [0] * len(dt_range),
-                'commits': [0] * len(dt_range)
-            }
-
-            developers_info.append(obj)
-
     return developers_info
 
 def get_min_max_dates(team_id, team_project_id):
