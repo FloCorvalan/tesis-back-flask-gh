@@ -363,7 +363,7 @@ def get_prod_info2(team_project_id):
     print(dt_range)
     return df.to_html() + df1.to_html() + df2.to_html()
 
-def get_prod_info(team_id, team_project_id, min_date, max_date):
+def get_prod_info(team_project_id, min_date, max_date):
     developers = get_developers(team_project_id)
 
     developers_info = []
@@ -435,3 +435,13 @@ def get_github_min_max_date(team_project_id):
     min_date = datetime.fromtimestamp(min_date).strftime('%Y-%m-%d %H:%M:%S')
     max_date = datetime.fromtimestamp(max_date).strftime('%Y-%m-%d %H:%M:%S')
     return min_date, max_date
+
+def get_part_names(team_id):
+    names_send = []
+    projects = get_projects(team_id)
+    for id in projects:
+        names = get_developers(id)
+        for name in names:
+            if name not in names_send:
+                names_send.append(name)
+    return names_send

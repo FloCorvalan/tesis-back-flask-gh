@@ -246,3 +246,7 @@ def get_prod_docs_by_developer(team_project_id, developer):
     if docs.count() != 0:
         return docs
     return None
+
+def get_projects(team_id):
+    team = mongo.db.get_collection('team').find_one({'_id': ObjectId(team_id)})
+    return team['projects']

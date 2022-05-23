@@ -114,7 +114,7 @@ def get_github_participation():
 
 @github.route('/github/prod', methods=['POST'])
 def get_github_productivity():
-    team_id = request.json['team_id']
+    #team_id = request.json['team_id']
     team_project_id = request.json['team_project_id']
     #team_id = '6241fad36d714f635bafbc9f'
     #team_project_id = '625f1e47bffb6a90d59d3e06'
@@ -126,8 +126,24 @@ def get_github_productivity():
     min_date = datetime.strptime(str(min_date_str).split(".")[0], "%Y-%m-%d %H:%M:%S")
     #max_date_str = '2022-05-21 05:23:38'
     max_date = datetime.strptime(str(max_date_str).split(".")[0], "%Y-%m-%d %H:%M:%S")
-    prod = get_prod_info(team_id, team_project_id, min_date, max_date)
+    prod = get_prod_info(team_project_id, min_date, max_date)
     response = json_util.dumps(prod)
+    return Response(response, mimetype='application/json')
+
+###################################################################
+###################################################################
+###################################################################
+#------------------------------------------------------------------
+
+###################################################################
+###################### PARTICIPANTS NAMES #########################
+###################################################################
+
+@github.route('/github/part-names', methods=['POST'])
+def get_github_part_names():
+    team_id = request.json['team_id']
+    names = get_part_names(team_id)
+    response = json_util.dumps(names)
     return Response(response, mimetype='application/json')
 
 ###################################################################
