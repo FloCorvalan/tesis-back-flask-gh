@@ -1,0 +1,33 @@
+brotlipy==0.7.0
+certifi==2020.6.20
+cffi @ file:///tmp/build/80754af9/cffi_1600699146221/work
+chardet==3.0.4
+click==7.1.2
+cryptography @ file:///tmp/build/80754af9/cryptography_1601046815590/work
+Deprecated==1.2.10
+Flask==1.1.2
+Flask-Cors @ file:///tmp/build/80754af9/flask-cors_1598886879133/work
+Flask-PyMongo @ file:///home/conda/feedstock_root/build_artifacts/flask-pymongo_1630936547698/work
+idna @ file:///tmp/build/80754af9/idna_1593446292537/work
+itsdangerous==1.1.0
+Jinja2==2.11.2
+MarkupSafe==1.1.1
+mkl-fft==1.3.1
+mkl-random @ file:///tmp/build/80754af9/mkl_random_1626186064646/work
+mkl-service==2.4.0
+NEURON==7.8.2
+numpy @ file:///tmp/build/80754af9/numpy_and_numpy_base_1634095647912/work
+pandas @ file:///tmp/build/80754af9/pandas_1602088120436/work
+pycparser @ file:///tmp/build/80754af9/pycparser_1594388511720/work
+PyGithub @ file:///tmp/build/80754af9/pygithub_1597767169487/work
+PyJWT==1.7.1
+pymongo==3.10.1
+pyOpenSSL @ file:///tmp/build/80754af9/pyopenssl_1594392929924/work
+PySocks==1.7.1
+python-dateutil==2.8.1
+pytz==2020.1
+requests @ file:///tmp/build/80754af9/requests_1592841827918/work
+six==1.15.0
+urllib3 @ file:///tmp/build/80754af9/urllib3_1603305693037/work
+Werkzeug==1.0.1
+wrapt==1.12.1

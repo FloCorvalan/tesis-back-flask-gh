@@ -92,7 +92,7 @@ def get_registers(team_project_id, source_id):
             # Se analizan los datos posteriores a la ultima
             #fecha de revision
             last_date = get_github_info_last_date(team_project_id, source_id, 'last_date')
-            commits = repo.get_commits(branch.name, since=last_date)
+            commits = repo.get_commits(branch.name, since=last_date + timedelta(hours=4))
         #print("RAMA " + branch.name)
         for commit in commits:
             if commit.sha not in commits_sha:
