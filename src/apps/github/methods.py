@@ -115,12 +115,14 @@ def get_registers(team_project_id, source_id):
                             #print(commit.files[i].changes)
                     i += 1
                 max_changes = 0
+                time = datetime.strptime(str(time).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp() - 14400 #Se restan las 4 horas de diferencia de UTC, la hora de los servidores de GitHub
+                case_id = get_actual_case_id(team_project_id, last_case_id, time)
                 for ex in EXPRESSIONS:
                     if number_changes[ex] > max_changes:
                         activity = 'IMPLEMENTACION_' + ex
-                        max_changes = number_changes[ex]
+                        #max_changes = number_changes[ex]
                 #print(max_changes)
-                if activity != '':
+                #if activity != '':
                     #print('REGISTER')
                     #print({
                     #        'team_project_id': team_project_id,
@@ -131,9 +133,7 @@ def get_registers(team_project_id, source_id):
                     #        'tool': 'github',
                     #        'userName': author
                     #        })
-                    time = datetime.strptime(str(time).split(".")[0], "%Y-%m-%d %H:%M:%S").timestamp() - 14400 #Se restan las 4 horas de diferencia de UTC, la hora de los servidores de GitHub
-                    case_id = get_actual_case_id(team_project_id, last_case_id, time)
-                    save_register(team_project_id, case_id, activity, time, author)
+                        save_register(team_project_id, case_id, activity, time, author)
     #print(github_info)
     update_last_date(github_info, team_project_id, source_id, repo_name) # Si no existe, la crea
 
