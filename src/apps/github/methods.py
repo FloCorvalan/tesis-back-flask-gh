@@ -12,7 +12,7 @@ import re
 from bson import json_util
 import pandas as pd
 import requests
-import github
+import os
 from flask import jsonify
 from .db_methods import *
 
@@ -34,7 +34,8 @@ def is_in_reg_expressions(ex_list, filename):
     return False
 
 def extract_reg_expressions():
-    filepath = '/home/florencia/tesis-folder/tesis-back-flask-gh/src/apps/github/RegularExpressions.csv'
+    pwd = os.getcwd()
+    filepath = pwd + '/src/apps/github/RegularExpressions.csv'
     file = open(filepath)
     lines = file.readlines()
     expressions = {}
