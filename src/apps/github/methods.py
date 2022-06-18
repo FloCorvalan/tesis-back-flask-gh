@@ -373,7 +373,7 @@ def get_part_names(team_id, start, end):
     if start != -1 and end != -1:
         projects = get_projects(team_id)
         for id in projects:
-            names = get_developers(id, start, end)
+            names = get_developers_names(id, start, end)
             for name in names:
                 if name['author'] not in names_send:
                     names_send.append(name['author'])
