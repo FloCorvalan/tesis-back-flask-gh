@@ -225,8 +225,8 @@ def get_totals(team_project_id, source_id):
 #################################################
 
 # Para obtener los nombres de usuario de los desarrolladores que han participado en el desarrollo
-def get_developers(team_project_id):
-    developers = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id}).distinct('author')
+def get_developers(team_project_id, start, end):
+    developers = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id, 'timestamp': {'$gte': start, '$lte': end}})
     return developers
 
 
