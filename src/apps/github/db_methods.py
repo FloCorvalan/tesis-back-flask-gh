@@ -231,7 +231,7 @@ def get_developers(team_project_id):
 
 # Para obtener los nombres de usuario de los desarrolladores que han participado en el desarrollo
 def get_developers_names(team_project_id, start, end):
-    developers = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id, 'timestamp': {'$gte': start, '$lte': end}, 'additions': {'$gt': 0}})
+    developers = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id, 'timestamp': {'$gte': start, '$lte': end}})
     return developers
 
 # Para obtener los documentos con la informacion de cada commit y poder calcular la productividad
