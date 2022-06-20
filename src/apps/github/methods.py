@@ -16,23 +16,28 @@ EXPRESSIONS = ['code', 'test']
 
 # Para obtener un usuario autenticado con su token y nombre de usuario en GitHub
 def get_authenticated_user(source_id):
+    print("entre a autenticar usuario")
     token, user = get_authentication_info(source_id)
     g = Github(token)
+    print("sali de autenticar usuario")
     return g.get_user(user)
 
 
 # Define si un nombre de archivo esta en las regular expressions
 def is_in_reg_expressions(ex_list, filename):
+    print("entre a is in reg exp")
     for ex in ex_list:
         exp = '^' + ex + '$'
         res = re.search(exp, filename)
         if res != None:
             return True
+    print("voy a salir de is in reg exp")
     return False
 
 
 # Extrae las regular expressions desde el archivo RegularExpressions.csv
 def extract_reg_expressions():
+    print("entre a extraer reg exp")
     pwd = os.getcwd()
     filepath = pwd + '/src/apps/github/RegularExpressions.csv'
     file = open(filepath)
@@ -45,11 +50,13 @@ def extract_reg_expressions():
         expressions[name] = row
         row = []
         name = ''
+    print("voy a salir de extraer reg exp")
     return expressions
 
 
 # Obtiene el case id actual, el que se debe asociar al registro que se va a guardar
 def get_actual_case_id(team_project_id, last_case_id, timestamp):
+    print("entre a get actual case id")
     last_case_id_gh = get_last_case_id_gh(team_project_id)
     cont = last_case_id_gh
     case_id = None
@@ -58,17 +65,20 @@ def get_actual_case_id(team_project_id, last_case_id, timestamp):
         ini, fin = search_timestamps(cont, ant, team_project_id)
         if(timestamp > ini and timestamp <= fin):
             case_id = cont
+            print("voy a salir de get actual case id")
             return case_id
         cont += 1
     ini, fin = search_timestamps(last_case_id, last_case_id - 1, team_project_id)
     if(timestamp > ini):
+        print("voy a salir de get actual case id")
         return last_case_id
+    print("voy a salir de get actual case id")
     return 0
 
 
 # Genera los registros asociados a GitHub que seran utilizados en process mining
 def get_registers(team_project_id, source_id):
-
+    print("entre a get registers")
     dic = extract_reg_expressions()
 
     repo_name, last_case_id = get_source_info(team_project_id, source_id)
@@ -81,6 +91,7 @@ def get_registers(team_project_id, source_id):
 
     commits_sha = []
     for branch in branches:
+        print("entre al for de las ramas")
         if github_info == None or last_date_exists == None:
             #### Se analizan todos los datos existentes
             commits = repo.get_commits(branch.name)
@@ -89,9 +100,12 @@ def get_registers(team_project_id, source_id):
             # Se analizan los datos posteriores a la ultima
             #fecha de revision
             last_date = get_github_info_last_date(team_project_id, source_id, 'last_date')
+            print(last_date)
             commits = repo.get_commits(branch.name, since=last_date + timedelta(hours=4))
         for commit in commits:
+            print("entre al for de los commits")
             if commit.sha not in commits_sha:
+                print("entre al if de que no esta el commit")
                 commits_sha.append(commit.sha)
                 # Se deben analizar los nombres de los archivos que fueron modificados
                 author = commit.commit.author.name
@@ -103,6 +117,7 @@ def get_registers(team_project_id, source_id):
                     number_changes[ex] = 0
                 activity = ''
                 while i < len(commit.files):
+                    print("entre al while de los files")
                     for ex in EXPRESSIONS:
                         if is_in_reg_expressions(dic[ex], commit.files[i].filename) and commit.files[i].changes > min_changes: 
                             number_changes[ex] += commit.files[i].changes
@@ -113,8 +128,12 @@ def get_registers(team_project_id, source_id):
                 for ex in EXPRESSIONS:
                     if number_changes[ex] > max_changes:
                         activity = 'IMPLEMENTACION_' + ex
+                        print("voy a guardar registro")
                         save_register(team_project_id, case_id, activity, time, author)
+    print("voy a actualizar last_date")
     update_last_date(github_info, team_project_id, source_id, repo_name) # Si no existe, la crea
+
+    print("voy a salir de get registers")
 
     return {'message': 'Successfully extracted data'}
 
