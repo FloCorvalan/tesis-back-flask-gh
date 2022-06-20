@@ -34,7 +34,7 @@ def is_in_reg_expressions(ex_list, filename):
 # Extrae las regular expressions desde el archivo RegularExpressions.csv
 def extract_reg_expressions():
     pwd = os.getcwd()
-    filepath = pwd + '/src/apps/github/RegularExpressions.csv'
+    filepath = pwd + '/apps/github/RegularExpressions.csv'
     file = open(filepath)
     lines = file.readlines()
     expressions = {}
