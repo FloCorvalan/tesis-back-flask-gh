@@ -69,4 +69,3 @@ dependencies:
   - wrapt=1.12.1=py38h7b6447c_1
   - xz=5.2.5=h7b6447c_0
   - zlib=1.2.11=h7f8727e_4
-prefix: /home/florencia/anaconda3/envs/myenv
