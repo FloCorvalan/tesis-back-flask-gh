@@ -11,10 +11,11 @@ github = Blueprint('github', __name__)
 
 @github.route('/github', methods=['POST'])
 def get_registers_service():
+    print("Entre a /github")
     team_project_id = request.json['team_project_id']
     source_id = request.json['source_id']
-    #team_project_id = '625f1e47bffb6a90d59d3e06'
-    #source_id = '6255d136c04ac27bbad0276d'
+    print(source_id)
+    print(team_project_id)
     response = get_registers(team_project_id, source_id)
     return response
 
