@@ -53,15 +53,15 @@ def get_actual_case_id(team_project_id, last_case_id, timestamp):
     last_case_id_gh = get_last_case_id_gh(team_project_id)
     cont = last_case_id_gh
     case_id = None
-    while(cont < last_case_id):
+    while cont < last_case_id:
         ant = cont - 1
         ini, fin = search_timestamps(cont, ant, team_project_id)
-        if(timestamp > ini and timestamp <= fin):
+        if timestamp > ini and timestamp <= fin:
             case_id = cont
             return case_id
         cont += 1
     ini, fin = search_timestamps(last_case_id, last_case_id - 1, team_project_id)
-    if(timestamp > ini):
+    if timestamp > ini:
         return last_case_id
     return 0
 

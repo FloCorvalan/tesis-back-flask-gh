@@ -13,11 +13,11 @@ import pymongo
 def search_timestamps(case_id, ant, team_project_id):
     team_project_min = mongo.db.get_collection('registers').find({'team_project_id': team_project_id, 'case_id': ant}).sort('timestamp', pymongo.DESCENDING)
     team_project_max = mongo.db.get_collection('registers').find({'team_project_id': team_project_id, 'case_id': case_id}).sort('timestamp', pymongo.DESCENDING)
-    if(team_project_max.count_documents() > 0):
+    if team_project_max.count_documents() > 0:
         max = team_project_max[0]['timestamp']
     else:
         max = 0
-    if(team_project_min.count_documents() > 0):
+    if team_project_min.count_documents() > 0:
         min = team_project_min[0]['timestamp']
     else:
         min = 0
@@ -27,7 +27,7 @@ def search_timestamps(case_id, ant, team_project_id):
 # Se obtiene el ultimo case id asociado a un registro de GitHub
 def get_last_case_id_gh(team_project_id):
     team_project = mongo.db.get_collection('registers').find({'team_project_id': ObjectId(team_project_id), 'tool': 'github'}).sort('case_id', pymongo.DESCENDING)
-    if(team_project.count_documents() == 0):
+    if team_project.count_documents() == 0:
         return 0
     case_id = team_project[0]['case_id']
     return case_id
