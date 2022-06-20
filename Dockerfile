@@ -2,7 +2,7 @@ FROM continuumio/miniconda:latest
 
 WORKDIR /app
 
-COPY environment.yml ./app/environment.yml
+COPY environment.yml ./
 COPY /src /app
 COPY .env /app
 
