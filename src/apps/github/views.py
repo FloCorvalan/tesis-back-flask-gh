@@ -54,10 +54,7 @@ def get_github_participation():
 
 @github.route('/github/prod', methods=['POST'])
 def get_github_productivity():
-    #team_id = request.json['team_id']
     team_project_id = request.json['team_project_id']
-    #team_id = '6241fad36d714f635bafbc9f'
-    #team_project_id = '625f1e47bffb6a90d59d3e06'
 
     # Se buscan las fechas min y max
     min_date_str, max_date_str = get_github_min_max_date(team_project_id)

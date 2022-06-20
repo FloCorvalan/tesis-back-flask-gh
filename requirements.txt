@@ -25,7 +25,7 @@ py==1.11.0
 pycparser==2.20
 PyGithub==1.53
 PyJWT==1.7.1
-pymongo==3.10.1
+pymongo==4.0.2
 pyOpenSSL==19.1.0
 pyparsing==3.0.4
 PySocks==1.7.1
