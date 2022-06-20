@@ -116,8 +116,6 @@ def get_registers(team_project_id, source_id):
                         save_register(team_project_id, case_id, activity, time, author)
     update_last_date(github_info, team_project_id, source_id, repo_name) # Si no existe, la crea
 
-    return {'message': 'Successfully extracted data'}
-
 
 #################################################
 ############# PARTICIPATION #####################
