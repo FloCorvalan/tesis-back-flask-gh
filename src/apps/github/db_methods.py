@@ -238,7 +238,7 @@ def get_developers_names(team_project_id, start, end):
 # individual con estos posteriormente
 def get_prod_docs_by_developer(team_project_id, developer):
     docs = mongo.db.get_collection('github_repo_info').find({'team_project_id': team_project_id, 'author': developer})
-    if docs.count_documents() != 0:
+    if len(list(docs)) != 0:
         return docs
     return None
 
