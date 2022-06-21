@@ -313,7 +313,10 @@ def get_prod_info(team_project_id, min_date, max_date):
     for developer in developers:
         docs = get_prod_docs_by_developer(team_project_id, developer)
         if docs != None:
-            df = pd.DataFrame(list(docs))
+            lista = list(docs)
+            print("lista", lista)
+            df = pd.DataFrame(lista)
+            print('df', df)
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
 
             # Se agrega la fecha minima entre las 3 herramientas para hacer los intervalos desde ahi
