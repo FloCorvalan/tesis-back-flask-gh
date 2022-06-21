@@ -26,7 +26,7 @@ def search_timestamps(case_id, ant, team_project_id):
 
 # Se obtiene el ultimo case id asociado a un registro de GitHub
 def get_last_case_id_gh(team_project_id):
-    team_project = mongo.db.get_collection('registers').find_one({'team_project_id': ObjectId(team_project_id), 'tool': 'jira'}, sort=[("case_id", -1)])
+    team_project = mongo.db.get_collection('registers').find_one({'team_project_id': ObjectId(team_project_id), 'tool': 'github'}, sort=[("case_id", -1)])
     if(team_project == None):
         return 0
     case_id = team_project['case_id']
