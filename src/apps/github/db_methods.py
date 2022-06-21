@@ -11,14 +11,14 @@ import pymongo
 # Para buscar los timestamps limites segun case id para determinar a que case id pertenece 
 # el registro que se va a guardar
 def search_timestamps(case_id, ant, team_project_id):
-    team_project_min = mongo.db.get_collection('registers').find_one({'team_project_id': team_project_id, 'case_id': ant}, sort=[("timestamp", -1)])
-    team_project_max = mongo.db.get_collection('registers').find_one({'team_project_id': team_project_id, 'case_id': case_id}, sort=[("timestamp", -1)])
-    if(team_project_max != None):
-        max = team_project_max['timestamp']
+    team_project_min = mongo.db.get_collection('registers').find({'team_project_id': team_project_id, 'case_id': ant}).sort('timestamp', pymongo.DESCENDING)
+    team_project_max = mongo.db.get_collection('registers').find({'team_project_id': team_project_id, 'case_id': case_id}).sort('timestamp', pymongo.DESCENDING)
+    if(team_project_max.count() > 0):
+        max = team_project_max[0]['timestamp']
     else:
         max = 0
-    if(team_project_min != None):
-        min = team_project_min['timestamp']
+    if(team_project_min.count() > 0):
+        min = team_project_min[0]['timestamp']
     else:
         min = 0
     return min, max
@@ -26,12 +26,11 @@ def search_timestamps(case_id, ant, team_project_id):
 
 # Se obtiene el ultimo case id asociado a un registro de GitHub
 def get_last_case_id_gh(team_project_id):
-    team_project = mongo.db.get_collection('registers').find_one({'team_project_id': ObjectId(team_project_id), 'tool': 'github'}, sort=[("case_id", -1)])
-    if(team_project == None):
+    team_project = mongo.db.get_collection('registers').find({'team_project_id': ObjectId(team_project_id), 'tool': 'github'}).sort('case_id', pymongo.DESCENDING)
+    if(team_project.count() == 0):
         return 0
-    case_id = team_project['case_id']
+    case_id = team_project[0]['case_id']
     return case_id
-
 
 # Se obtiene la informacion de autenticacion desde la fuente de informacion de GitHub
 def get_authentication_info(source_id):
