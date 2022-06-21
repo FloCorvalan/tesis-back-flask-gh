@@ -315,7 +315,7 @@ def get_prod_info(team_project_id, min_date, max_date):
         if docs != None:
             lista = list(docs)
             print("lista", lista)
-            df = pd.DataFrame(lista)
+            df = pd.DataFrame(data=lista)
             print('df', df)
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
 
