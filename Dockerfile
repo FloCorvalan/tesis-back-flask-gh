@@ -18,4 +18,4 @@ COPY .env /app
 
 ENTRYPOINT [ "python3" ]
 
-CMD [ "app.py" ]
+CMD [ "-u", "app.py" ]
