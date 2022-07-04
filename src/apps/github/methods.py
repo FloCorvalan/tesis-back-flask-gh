@@ -371,6 +371,7 @@ def get_github_min_max_date(team_project_id):
 # Esto para saber quienes han aportado en la productividad grupal
 def get_part_names(team_id, timestamps):
     names_send = []
+    print(timestamps)
     if len(timestamps.keys()) != 0:
         projects = get_projects(team_id)
         for id in projects:
@@ -381,4 +382,4 @@ def get_part_names(team_id, timestamps):
                 for name in names:
                     if name['author'] not in names_send:
                         names_send.append(name['author'])
-        return names_send
+    return names_send
