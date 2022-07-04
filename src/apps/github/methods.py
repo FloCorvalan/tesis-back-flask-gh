@@ -369,17 +369,13 @@ def get_github_min_max_date(team_project_id):
 # Obtiene los nombres de usuario de los desarrolladores que han participado en el desarrollo
 # de cualquier proyecto (para saber quienes han aportado en alguno de los proyectos)
 # Esto para saber quienes han aportado en la productividad grupal
-def get_part_names(team_id, timestamps):
+def get_part_names(team_id, start, end):
     names_send = []
-    print(timestamps)
-    if len(timestamps.keys()) != 0:
+    if start != -1 and end != -1:
         projects = get_projects(team_id)
         for id in projects:
-            for timestamps_key in timestamps.keys():
-                start = timestamps[timestamps_key]['start']
-                end = timestamps[timestamps_key]['end']
-                names = get_developers_names(id, start, end)
-                for name in names:
-                    if name['author'] not in names_send:
-                        names_send.append(name['author'])
-    return names_send
+            names = get_developers_names(id, start, end)
+            for name in names:
+                if name['author'] not in names_send:
+                    names_send.append(name['author'])
+        return names_send

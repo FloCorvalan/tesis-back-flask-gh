@@ -79,8 +79,9 @@ def get_github_productivity():
 @github.route('/github/part-names', methods=['POST'])
 def get_github_part_names():
     team_id = request.json['team_id']
-    timestamps = request.json['timestamps']
-    names = get_part_names(team_id, timestamps)
+    start_timestamp = request.json['start_timestamp']
+    end_timestamp = request.json['end_timestamp']
+    names = get_part_names(team_id, start_timestamp, end_timestamp)
     response = json_util.dumps(names)
     return Response(response, mimetype='application/json')
 
